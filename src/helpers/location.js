@@ -29,3 +29,5 @@ export const getUserLocation = async (successCallback, errorCallBack, options) =
 
 }
 
+export const GoogleMapiAPIKey = "AIzaSyBOSF44W1Z42oyLc0yq5Z_cRA7HkBL2XnY";
+

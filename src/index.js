@@ -10,12 +10,12 @@ import StepOneSignal from "step-onesignal";
 class App extends Component {
   constructor(props) {
     super(props);
-    Step_API_Client.baseURL = "https://homejobapp.com/api/";
+    Step_API_Client.baseURL = "http://172.105.38.120/api/";
     Step_API_Client.defaultHeaders = {
       Accept: "application/json",
       "Content-Type": "application/json"
     };
-    StepOneSignal.init('fbfa4ecc-728d-469e-9b8d-660c32945261')
+    StepOneSignal.init('0f30ee31-f8d2-44fc-82d4-2bded8a42861')
   }
   componentWillUnmount() {
     StepOneSignal.remove()

@@ -74,6 +74,7 @@ class IntroScreen extends Component {
       // this.setState({ screenLoading: false });
     }
   }
+  
   render() {
     const {
       introTextStyle,

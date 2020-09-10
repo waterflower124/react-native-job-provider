@@ -11,10 +11,14 @@
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
 
+#import <GoogleMaps/GoogleMaps.h>
+
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+  [GMSServices provideAPIKey:@"AIzaSyBOSF44W1Z42oyLc0yq5Z_cRA7HkBL2XnY"];
+  
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
   RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge
                                                    moduleName:@"hsapp"

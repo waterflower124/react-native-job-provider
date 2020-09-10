@@ -51,8 +51,10 @@ class EditClientProfileScreen extends Component {
       </View>
     )
   });
+
   state = {
-    name: "",
+    first_name: "",
+    last_name: "",
     password: "",
     confirmPassword: "",
     feedback: "",
@@ -74,9 +76,11 @@ class EditClientProfileScreen extends Component {
 
   componentDidMount() {
     const { user } = this.props;
-    this.setState({ name: user.data.name, image: user.data.avatar });
+    console.log("current user: " + JSON.stringify(user))
+    this.setState({ first_name: user.data.first_name, last_name: user.data.last_name, image: user.data.avatar });
     this.loadOrders();
   }
+
   async uploadPhotoPress() {
     const { imageObject, imageSource } = await ImagePicker({
       width: 100,
@@ -93,13 +97,17 @@ class EditClientProfileScreen extends Component {
   validateInputs(
     isEmptyPassword,
     isEmptyConfirmPassword,
-    isEmptyName,
+    isEmptyFirstName,
+    isEmptyLastName,
     passwordError,
     confirmPasswordError,
-    NameError
+    firstNameError,
+    lastNameError
   ) {
     let error = "";
-    if ((isEmptyName, NameError)) {
+    if ((isEmptyFirstName, firstNameError)) {
+      error = "name";
+    } if ((isEmptyLastName, lastNameError)) {
       error = "name";
     } else if ((isEmptyPassword, passwordError)) {
       error = "password";
@@ -115,39 +123,45 @@ class EditClientProfileScreen extends Component {
 
   editAccount() {
     const { user } = this.props;
-    const { name, password, confirmPassword, uploadImage, image } = this.state;
+    const { first_name, last_name, password, confirmPassword, uploadImage, image } = this.state;
     const mainData = user.data;
     const updatedData = {};
-    const newName = name != mainData.name;
+    const newFirstName = first_name != mainData.first_name;
+    const newLastName = last_name != mainData.last_name;
     const newPassword = password.length != 0 && password === confirmPassword;
     const newUploadedImage = image != mainData.avatar;
 
     if (newUploadedImage) {
       updatedData.avatar = uploadImage;
     }
-    if (newName) {
-      updatedData.name = name;
+    if (newFirstName) {
+      updatedData.first_name = first_name;
+    }
+    if (newLastName) {
+      updatedData.last_name = last_name;
     }
     if (newPassword) {
       updatedData.password = password;
     }
-    const notChangedData = !newPassword && !newName && !newUploadedImage;
+    const notChangedData = !newPassword && !newFirstName && !newLastName && !newUploadedImage;
     if (!notChangedData) {
       this.editUserAccount(updatedData);
     }
   }
+  
   async editUserAccount(updatedData) {
     this.setState({ loading: true });
-    console.warn("updatedData", updatedData);
+    console.log("updateduser post data: ", JSON.stringify(updatedData));
     try {
       const data = await actions.updateUser(updatedData);
-      console.warn("data", data);
+      console.log("update response", JSON.stringify(data));
       const profile = await StepRequest("profile");
       actions.setUserData({ data: profile });
-      console.warn("profile", profile);
+      console.log("profile::", JSON.stringify(profile));
       this.setState({
         loading: false,
-        name: profile.name,
+        first_name: profile.first_name,
+        last_name: profile.last_name,
         image: profile.avatar,
         password: "",
         confirmPassword: ""
@@ -165,7 +179,7 @@ class EditClientProfileScreen extends Component {
     try {
       const data = await StepRequest("client-orders");
       this.setState({ data, screenLoading: false, listLoading: false });
-      console.warn("orders", data);
+      console.log("orders:: ", JSON.stringify(data));
     } catch (error) {
       this.setState({ screenLoading: false, listLoading: false });
       Alert.alert(error.message);
@@ -190,7 +204,7 @@ class EditClientProfileScreen extends Component {
     try {
       this.setState({ errors: [] });
       const data = await StepRequest("order-review", "POST", body);
-      console.warn("data", data);
+      // console.warn("data", data);
       this.setState({ modalVisible: false, rate: 0, feedback: "" });
       this.loadOrders();
     } catch (error) {
@@ -245,8 +259,10 @@ class EditClientProfileScreen extends Component {
       servicePlaceholder,
       errorStyle
     } = styles;
+
     const {
-      name,
+      first_name,
+      last_name,
       password,
       confirmPassword,
       selectedItem,
@@ -262,22 +278,27 @@ class EditClientProfileScreen extends Component {
       errors,
       listLoading
     } = this.state;
+
     const isEmptyPassword = password.length == 0;
     const isEmptyConfirmPassword = confirmPassword.length == 0;
-    const isEmptyName = name.length == 0;
+    const isEmptyFirstName = first_name.length == 0;
+    const isEmptyLastName = last_name.length == 0;
     const isPasswordError = error === "password";
     const isConfirmPasswordError = error === "confirmPassword";
-    const isNameError = error === "name";
+    const isFirstNameError = error === "name";
+    const isLastNameError = error === "name";
     const rateError = errors.includes("rate");
-    console.warn("rateError", errors);
+    
     const feedBackError = errors.includes("feedback");
     const passwordError = password.length < 6 && password.length > 0;
     const showPasswordErrorStatus = password.length > 0 || isPasswordError;
     const confirmPasswordError = confirmPassword != password;
     const showConfirmPasswordErrorStatus =
       confirmPassword.length > 0 || isConfirmPasswordError;
-    const NameError = name.length < 2;
-    const showNameErrorStatus = name.length > 0 || isNameError;
+    const firstNameError = first_name.length < 2;
+    const lastNameError = last_name.length < 2;
+    const showFirstNameErrorStatus = first_name.length > 0 || isFirstNameError;
+    const showLastNameErrorStatus = last_name.length > 0 || isLastNameError;
     const tabs = [
       {
         image: icons.accountInfo,
@@ -304,7 +325,7 @@ class EditClientProfileScreen extends Component {
           onClose={() => this.setState({ modalVisible: false })}
           style={modalStyle}
         >
-          <ScrollView scrollEnabled={false}>
+          <ScrollView scrollEnabled={true}>
             <View style={containerModal}>
               <View style={serviceAvatarContainer}>
                 <Text style={modalTextStyle}>{strings.Service}</Text>
@@ -479,11 +500,20 @@ class EditClientProfileScreen extends Component {
                 </View>
 
                 <TextField
-                  onChangeText={name => this.setState({ name })}
-                  value={name}
-                  label={strings.yourname}
+                  onChangeText={first_name => this.setState({ first_name })}
+                  value={first_name}
+                  label={strings.firstname}
                   errorMessage={
-                    NameError && showNameErrorStatus && strings.invalidName
+                    firstNameError && showFirstNameErrorStatus && strings.invalidName
+                  }
+                  inputStyle={{ marginStart: 0 }}
+                />
+                <TextField
+                  onChangeText={last_name => this.setState({ last_name })}
+                  value={last_name}
+                  label={strings.last_name}
+                  errorMessage={
+                    lastNameError && showLastNameErrorStatus && strings.invalidName
                   }
                   inputStyle={{ marginStart: 0 }}
                 />
@@ -523,10 +553,12 @@ class EditClientProfileScreen extends Component {
                     this.validateInputs(
                       isEmptyPassword,
                       isEmptyConfirmPassword,
-                      isEmptyName,
+                      isEmptyFirstName,
+                      isEmptyLastName,
                       passwordError,
                       confirmPasswordError,
-                      NameError
+                      firstNameError,
+                      lastNameError
                     )
                   }
                 />
@@ -826,7 +858,7 @@ const styles = StyleSheet.create({
   },
   modalRateButtonContainer: {
     width: hScale(375),
-    height: vScale(163.6),
+    // height: vScale(163.6),
     alignItems: "center",
     paddingHorizontal: hScale(40)
   },
@@ -842,7 +874,7 @@ const styles = StyleSheet.create({
   modalButtonStyle: {
     width: hScale(294.3),
     height: vScale(52.6),
-    borderRadius: 0
+    borderRadius: 0,
   },
   modalTitleStyle: {
     textAlign: "center",

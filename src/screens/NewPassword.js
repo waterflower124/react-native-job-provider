@@ -46,32 +46,39 @@ export class NewPassword extends Component {
   async signup() {
     const { navigation } = this.props;
     this.setState({ validateloading: true });
-    const { name, mobile, email, password, avatar } = this.state;
+    const { first_name, last_name, mobile, email, password, avatar, location, selected_city, temp_latitude, temp_longitude } = this.state;
     const lang = await languageSwitcher.getCurrentLanguageCode();
     const userData = {
-      name,
+      first_name,
+      last_name,
       email,
       mobile,
       password,
       type: "client",
-      lang
+      lang,
+      lat: temp_latitude,
+      lng: temp_longitude,
+      address: location,
+      city: selected_city
     };
     if (avatar != null) {
       userData.avatar = avatar;
     }
+    console.log("userData", JSON.stringify(userData));
     try {
       const data = await StepRequest("register", "POST", userData);
       actions.setUserData({
         data: data.user,
         userToken: data.token
       });
-      console.warn("data", data);
+      console.log("data", JSON.stringify(data));
       this.setState({ validateloading: false });
       navigation.navigate("Home");
-      console.warn("userData", userData);
+      
     } catch (error) {
+      console.log(error)
       this.setState({ validateloading: false });
-      console.warn("userData", userData);
+      
       Alert.alert(error.message);
     }
   }

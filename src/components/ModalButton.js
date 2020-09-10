@@ -26,7 +26,8 @@ export const ModalButton = props => {
     modalVisible,
     onPress,
     submittedItem,
-    isCategory
+    isCategory,
+    containerStyle
   } = props;
   const {
     container,
@@ -66,7 +67,6 @@ export const ModalButton = props => {
             const isSelected = isCategory
               ? selectedItem.includes(item)
               : selectedItem.id == id;
-              console.warn('id',selectedItem,id)
             return (
               <TouchableOpacity
                 onPress={() => onSelect(item,isSelected)}
@@ -85,7 +85,7 @@ export const ModalButton = props => {
         <View style={cancelSaveContainer}>
           <TouchableOpacity
             onPress={onCloseModal}
-            style={[innerModalButton, { marginEnd: hScale(10) }]}
+            style={[innerModalButton, { marginEnd: hScale(10) },]}
           >
             <Text style={[textStyle, { fontSize: fScale(14) }]}>
               {strings.cancel}
@@ -98,7 +98,7 @@ export const ModalButton = props => {
           </TouchableOpacity>
         </View>
       </ModalContainer>
-      <TouchableOpacity style={container} onPress={onPress}>
+      <TouchableOpacity style={[container, containerStyle]} onPress={onPress}>
         <Text
           style={[
             textStyle,

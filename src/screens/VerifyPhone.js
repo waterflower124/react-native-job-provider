@@ -31,6 +31,7 @@ export class VerifyPhone extends Component {
     headerLeft: <BackButton onPress={() => navigation.goBack()} />
   });
   componentDidMount() {
+    
     this.sendCode()
   }
   startTimer(){
@@ -50,11 +51,9 @@ export class VerifyPhone extends Component {
   }
 
   async sendCode() {
-    console.warn("resend code");
     const { mobile } = this.state
     try {
       const data = await StepRequest("otp/send", "POST", { mobile });
-      console.warn("data", data);
       this.startTimer();
     } catch (error) {
       Alert.alert(error.message);
@@ -79,8 +78,7 @@ export class VerifyPhone extends Component {
       try {
         this.setState({ validateloading: true });
         const data = await StepRequest("otp/verify", "POST", { mobile, otp: code });
-        console.warn("data", data);
-      this.naivgateToScreen();
+        this.naivgateToScreen();
       } catch (error) {
         this.setState({ validateloading: false });
         Alert.alert(error.message);
@@ -92,13 +90,13 @@ export class VerifyPhone extends Component {
 
   naivgateToScreen() {
     const { navigation } = this.props;
-    const { name, mobile, email, isEmployee, avatar } = this.state;
+    const { first_name, last_name, mobile, email, isEmployee, avatar, location, selected_city, temp_latitude, temp_longitude } = this.state;
     if (isEmployee) {
       this.setState({ validateloading: false });
       this.signup();
     } else {
       navigation.navigate("NewPassword", {
-        userData: { avatar, name, mobile, email }
+        userData: { avatar, first_name, last_name, mobile, email, location, selected_city, temp_latitude, temp_longitude }
       });
     }
   }
@@ -106,7 +104,7 @@ export class VerifyPhone extends Component {
     const { navigation } = this.props;
     this.setState({ validateloading: true });
     const {
-      city_id,
+      selected_city,
       location,
       range_id,
       category_id,
@@ -116,14 +114,17 @@ export class VerifyPhone extends Component {
       mobile,
       email,
       password,
-      name,
-      avatar
+      first_name,
+      last_name,
+      avatar,
+      temp_latitude,
+      temp_longitude
     } = this.state;
     const lang = await languageSwitcher.getCurrentLanguageCode();
     const userData = {
-      city_id,
-      emp_lat: location.latitude,
-      emp_long: location.longitude,
+      city: selected_city,
+      lat: temp_latitude,
+      lng: temp_longitude,
       distance: range_id,
       category_id,
       bank_id,
@@ -131,11 +132,13 @@ export class VerifyPhone extends Component {
       commercial,
       mobile,
       password,
-      name,
+      first_name,
+      last_name,
       avatar,
       type: "employee",
       email,
-      lang
+      lang,
+      address: location
     };
     try {
       const data = await StepRequest("register", "POST", userData);
@@ -145,11 +148,8 @@ export class VerifyPhone extends Component {
       });
       this.setState({ validateloading: false });
       navigation.navigate("ClientsTab");
-      console.warn("data", data);
-      console.warn("userData", userData);
     } catch (error) {
       this.setState({ validateloading: false });
-      console.warn("userData", userData);
       Alert.alert(error.message);
     }
   }

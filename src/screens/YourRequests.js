@@ -43,6 +43,7 @@ export class YourRequests extends Component {
     }
   }
   componentDidMount() {
+    
     this.loadMyRequests();
   }
 
@@ -68,7 +69,7 @@ export class YourRequests extends Component {
         screenLoading: false,
         listLoading: false
       });
-      console.warn("data", data);
+      console.log("client request response:", JSON.stringify(data));
     } catch (error) {
       this.setState({ screenLoading: false, listLoading: false });
       Alert.alert(error.message);
@@ -118,11 +119,19 @@ export class YourRequests extends Component {
                   isDeleting={deletingItemWithID == item.id}
                   disableTouch={item.OrderStatus === "UnderPayment"}
                   onPress={() => {
-                    if (item.OrderStatus === "InProgress"){
-                      navigation.navigate("Chat", {
-                        receiver_id: item.assignedEmployee.id,
-                        avatar: item.assignedEmployee.avatar
-                      });
+                    if (item.OrderStatus === "InProgress") {
+                      if(item.offers.length == 0) {
+
+                      } else if(item.offers.length == 1) {
+                        navigation.navigate("Chat", {
+                          receiver_id: item.assignedEmployee.id,
+                          avatar: item.assignedEmployee.avatar,
+                          task_id: item.offers[0].request_id
+                        });
+                      } else if(item.offers.length > 1) {
+                        navigation.navigate("Messages");
+                      }
+                      
                     } else {
                       navigation.navigate("RequestDetails", { item })
                     }

@@ -55,7 +55,8 @@ export class RequestDetails extends Component {
       console.warn("data", data);
       await this.props.navigation.navigate("Chat", {
         receiver_id: selectedItem.employee.id,
-        avatar: selectedItem.employee.avatar
+        avatar: selectedItem.employee.avatar,
+        task_id: item.id
       });
       console.warn("acceptBody", acceptBody);
     } catch (error) {

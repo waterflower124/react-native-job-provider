@@ -17,7 +17,7 @@ import moment from "moment";
 export const NotificationCard = props => {
   const { item, onPress, onPressDelete, isDeleting, loading } = props;
   const { message, type, created_at, moreData } = item;
-  const { price, requirements, budget, lastMessage, note } = moreData;
+  const { price, requirements, budget, lastMessage, note } = moreData || {};
   const isVoiceMessage = lastMessage && lastMessage.type === 2;
   const isPhotoImage = lastMessage && lastMessage.type === 3;
   const {

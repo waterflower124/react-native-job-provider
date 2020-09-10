@@ -30,7 +30,11 @@ export class NewTasks extends Component {
       </View>
     )
   });
-  state = { screenLoading: true, data: [], listLoading: false };
+  state = { 
+    screenLoading: true, 
+    data: [], 
+    listLoading: false 
+  };
   async componentDidUpdate(prevProps) {
     const { navigation } = this.props;
     const oldRefresh = prevProps.navigation.getParam("refresh");
@@ -49,7 +53,7 @@ export class NewTasks extends Component {
     try {
       const data = await StepRequest("new-tasks");
       this.setState({ data, screenLoading: false, listLoading: false });
-      console.warn("tasks", data);
+      console.log("tasks", JSON.stringify(data));
     } catch (error) {
       this.setState({ screenLoading: false, listLoading: false });
       Alert.alert(error.message);

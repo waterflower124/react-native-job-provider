@@ -8,10 +8,13 @@ import {
   TouchableOpacity,
   View,
   KeyboardAvoidingView,
-  I18nManager
+  I18nManager,
+  AsyncStorage,
+  Alert,
+  Platform
 } from "react-native";
 import { isEmpty, isEmail } from "step-validators";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { fScale, hScale, sWidth, vScale } from "step-scale";
 import { icons, fonts } from "../assets";
 import { BackButton, Button, Container, TextField } from "../components";
@@ -22,6 +25,7 @@ import {
   ImagePicker,
   getUserLocation,
   convertNumbers2English,
+  GoogleMapiAPIKey
 } from "../helpers";
 import { connect } from "step-react-redux";
 
@@ -30,12 +34,13 @@ class EmployeeSignUpScreen extends Component {
     headerLeft: <BackButton onPress={() => navigation.goBack()} />
   });
   state = {
-    name: "",
+    first_name: "",
+    last_name: "",
     email: "",
     image: null,
     avatar: null,
     modalVisible: false,
-    location: null,
+    // location: null,
     mobile: "",
     commercial: "",
     bankAccount: "",
@@ -57,7 +62,12 @@ class EmployeeSignUpScreen extends Component {
     submittedCity: "",
     submittedRange: "",
     submittedService: [],
-    submittedBank: ""
+    submittedBank: "",
+
+    selected_city: "",
+    location: "",
+    temp_latitude: 0.0,
+    temp_longitude: 0.0,
   };
   async uploadPhotoPress() {
     const { imageObject, imageSource } = await ImagePicker({
@@ -78,10 +88,12 @@ class EmployeeSignUpScreen extends Component {
     isEmptyBank,
     commericalError,
     isEmptyCommerical,
-    isEmptyName,
+    isEmptyFirstName,
+    isEmptyLastName,
     isEmptyPhone,
     isEmptyMail,
-    NameError,
+    firstNameError,
+    lastNameError,
     phoneError,
     MailError,
     isEmptyPassword,
@@ -91,14 +103,15 @@ class EmployeeSignUpScreen extends Component {
   ) {
     const {
       submittedCity,
+      selected_city,
       submittedRange,
       submittedService,
       submittedBank,
       location
     } = this.state;
-    if (submittedCity == "") {
+    if (selected_city == "") {
       this.setState({ chooseCity: true });
-    } else if (location == null) {
+    } else if (location == "") {
       this.setState({ error: "location" });
     } else if (submittedRange == "") {
       this.setState({ chooseRange: true });
@@ -112,10 +125,12 @@ class EmployeeSignUpScreen extends Component {
         isEmptyBank,
         commericalError,
         isEmptyCommerical,
-        isEmptyName,
+        isEmptyFirstName,
+        isEmptyLastName,
         isEmptyPhone,
         isEmptyMail,
-        NameError,
+        firstNameError,
+        lastNameError,
         phoneError,
         MailError,
         isEmptyPassword,
@@ -125,15 +140,18 @@ class EmployeeSignUpScreen extends Component {
       );
     }
   }
+
   validateInputs({
     bankError,
     isEmptyBank,
     commericalError,
     isEmptyCommerical,
-    isEmptyName,
+    isEmptyFirstName,
+    isEmptyLastName,
     isEmptyPhone,
     isEmptyMail,
-    NameError,
+    firstNameError,
+    lastNameError,
     phoneError,
     MailError,
     isEmptyPassword,
@@ -151,14 +169,20 @@ class EmployeeSignUpScreen extends Component {
       commercial,
       password,
       mobile,
-      name,
+      first_name,
+      last_name,
       email,
       location,
-      avatar
+      avatar,
+      selected_city,
+      temp_latitude,
+      temp_longitude,
     } = this.state;
     if ((isEmptyBank, bankError)) {
       error = "bank";
-    } else if ((isEmptyName, NameError)) {
+    } else if ((isEmptyFirstName, firstNameError)) {
+      error = "name";
+    } else if ((isEmptyLastName, lastNameError)) {
       error = "name";
     } else if ((isEmptyPhone, phoneError)) {
       error = "phone";
@@ -173,7 +197,6 @@ class EmployeeSignUpScreen extends Component {
     if (error == "") {
       const userData = {
         isEmployee: true,
-        city_id: selectedCity.id,
         location,
         range_id: selectedRange.id,
         category_id: selectedService.map(e => e.id),
@@ -183,7 +206,11 @@ class EmployeeSignUpScreen extends Component {
         mobile,
         email,
         password,
-        name
+        first_name,
+        last_name,
+        selected_city,
+        temp_latitude,
+        temp_longitude,
       };
       if (avatar != null) {
         userData.avatar == avatar;
@@ -196,6 +223,59 @@ class EmployeeSignUpScreen extends Component {
       this.setState({ error });
     }
   }
+
+  
+  getCurrentAddress = async() => {
+    this.setState({
+        screenLoading: true
+    })
+    var parameter = "";
+    let languageCode = await AsyncStorage.getItem('languageCode')
+    if (languageCode == "en") {
+      parameter = "latlng=" + this.state.temp_latitude + "," + this.state.temp_longitude + "&key=" + GoogleMapiAPIKey;
+    } else {
+      parameter = "latlng=" + this.state.temp_latitude + "," + this.state.temp_longitude + "&language=ar&key=" + GoogleMapiAPIKey;
+    }
+    
+    await fetch("https://maps.googleapis.com/maps/api/geocode/json?" + parameter, {
+        method: "GET",
+    })
+    .then(response => {
+        return response.json();
+    })
+    .then(responseData => {
+        console.log(JSON.stringify(responseData));
+        if(responseData.status != "OK") {
+            Alert.alert("Warning!", "Error occurred in getting address. Please try again.")
+        } else {
+            if(responseData.results.length > 0) {
+                this.setState({
+                    location: responseData.results[0].formatted_address,
+                })
+                for(i = 0; i < responseData.results[0].address_components.length; i ++) {
+                    for(j = 0; j < responseData.results[0].address_components[i].types.length; j ++) {
+                        if(responseData.results[0].address_components[i].types[j] == "locality") {
+                            this.setState({
+                                selected_city: responseData.results[0].address_components[i].short_name
+                            })
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        this.setState({ modalVisible: false })
+    })
+    .catch(error => {
+        console.log(error)
+    });
+
+    this.setState({
+        screenLoading: false
+    })
+  }
+
+
   render() {
     const {
       container,
@@ -222,6 +302,7 @@ class EmployeeSignUpScreen extends Component {
       errorContainer,
       errorMessageStyle
     } = styles;
+    
     const {
       modalVisible,
       location,
@@ -249,15 +330,19 @@ class EmployeeSignUpScreen extends Component {
       submittedBank,
       image,
       email,
-      name
+      first_name,
+      last_name,
+      selected_city
     } = this.state;
+
     const { categories, cities, banks } = this.props;
     const isLocationError = error == "location";
     const notSelectedCity = submittedCity == "";
     const notSelectedRange = submittedRange == "";
     const notSelectedService = submittedService.length == 0;
     const notSelectedBank = submittedBank == "";
-    const isNameError = error === "name";
+    const isFirstNameError = error === "name";
+    const isLastNameError = error === "name";
     const isMailError = error === "email";
     const isPasswordError = error === "password";
     const isConfirmPasswordError = error === "confirmPassword";
@@ -276,10 +361,13 @@ class EmployeeSignUpScreen extends Component {
     const commericalError = isNaN(commercial) || commercial.length < 4;
     const showcommercialError =
       commercial.length > 0 || isCommericalRegisterError;
-    const isEmptyName = name.length == 0;
-    const NameError = name.length < 3;
+    const isEmptyFirstName = first_name.length == 0;
+    const isEmptyLastName = last_name.length == 0;
+    const firstNameError = first_name.length < 3;
+    const lastNameError = last_name.length < 3;
     const MailError = !isEmail(email);
-    const showNameErrorStatus = name.length > 0 || isNameError;
+    const showFirstNameErrorStatus = first_name.length > 0 || isFirstNameError;
+    const showLastNameErrorStatus = last_name.length > 0 || isLastNameError;
     const showMailErrorStatus = email.length > 0 || isMailError;
     const passwordError = password.length < 6;
     const showPasswordErrorStatus = password.length > 0 || isPasswordError;
@@ -295,6 +383,7 @@ class EmployeeSignUpScreen extends Component {
       <Container transparentImage style={container}>
         <Modal animationType="fade" transparent={false} visible={modalVisible}>
           <MapView
+            provider = {PROVIDER_GOOGLE}
             ref={ref => (this.myMapView = ref)}
             showsUserLocation
             showsMyLocationButton
@@ -312,12 +401,12 @@ class EmployeeSignUpScreen extends Component {
                   this.myMapView.animateToRegion({
                     latitude,
                     longitude,
-                    latitudeDelta: 0.01,
-                    longitudeDelta: 0.01
+                    latitudeDelta: 0.05,
+                    longitudeDelta: 0.05
                   });
                   // todo: GeoCoding coords
                   this.setState({
-                    location: { latitude, longitude },
+                    // location: { latitude, longitude },
                     error: ""
                   });
                 },
@@ -326,12 +415,16 @@ class EmployeeSignUpScreen extends Component {
             }}
             onRegionChangeComplete={region => {
               const { latitude, longitude } = region;
-              this.setState({ location: { latitude, longitude } });
+              // this.setState({ location: { latitude, longitude } });
+              this.setState({
+                temp_latitude: latitude,
+                temp_longitude: longitude
+              })
             }}
           >
             <Marker
               pinColor={colors.second}
-              coordinate={location || { longitude: 45, latitude: 25 }}
+              coordinate={{latitude: this.state.temp_latitude, longitude: this.state.temp_longitude} || { longitude: 45, latitude: 25 }}
             />
           </MapView>
           <BackButton
@@ -344,13 +437,15 @@ class EmployeeSignUpScreen extends Component {
             linearCustomStyle={linearStyle}
             errorContainerCustom={errorContainerCustom}
             titleStyle={titleStyle}
-            onPress={() => this.setState({ modalVisible: false })}
+            onPress={() => this.getCurrentAddress()}
           />
         </Modal>
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView style = {{flex: 1}} showsVerticalScrollIndicator={false}>
           <KeyboardAvoidingView
-            behavior="position"
-            keyboardVerticalOffset={-500}
+            style = {{flex: 1}}
+            behavior={(Platform.OS === 'ios') ? "padding" : null}
+            keyboardVerticalOffset={100}
+            // enabled
           >
             <Text style={welcomeTextStyle}>{strings.welcome}</Text>
             <Text style={enterInfoStyle}>{strings.enterInfo}</Text>
@@ -379,7 +474,7 @@ class EmployeeSignUpScreen extends Component {
                 {isAvatarError ? strings.choosePhoto : ""}
               </Text>
             </View>
-            <ModalButton
+            {/* <ModalButton
               title={strings.city}
               data={cities}
               errorMessage={notSelectedCity && chooseCity && strings.chooseCity}
@@ -395,7 +490,7 @@ class EmployeeSignUpScreen extends Component {
               modalVisible={cityModalVisible}
               selectedItem={selectedCity}
               submittedItem={submittedCity}
-            />
+            /> */}
             <TouchableOpacity
               style={locationButton}
               onPress={() => this.setState({ modalVisible: true })}
@@ -411,7 +506,7 @@ class EmployeeSignUpScreen extends Component {
               </Text>
               <View style={locationContainer}>
                 <Text style={[textStyle, { marginBottom: vScale(10.6) }]}>
-                  {location != null && strings.location}
+                  {location}
                 </Text>
                 <Image
                   source={icons.loc}
@@ -426,6 +521,17 @@ class EmployeeSignUpScreen extends Component {
                 </Text>
               </View>
             </TouchableOpacity>
+
+            <TextField
+              value={selected_city}
+              authInputs
+              disableInput = {true}
+              label={strings.city}
+              customMainContainer={customMainContainer}
+              containerStyle={{ paddingStart: hScale(2) }}
+              labelStyle={{ marginBottom: 0 }}
+              inputStyle={{ marginStart: 0 }}
+            />
             <ModalButton
               title={strings.theRangeYouWillBeWorkingOn}
               data={range}
@@ -516,13 +622,26 @@ class EmployeeSignUpScreen extends Component {
               inputStyle={{ marginStart: 0 }}
             />
             <TextField
-              onChangeText={name => this.setState({ name })}
-              value={name}
+              onChangeText={first_name => this.setState({ first_name })}
+              value={first_name}
               authInputs
-              label={strings.yourname}
+              label={strings.firstname}
               customMainContainer={customMainContainer}
               errorMessage={
-                NameError && showNameErrorStatus && strings.invalidName
+                firstNameError && showFirstNameErrorStatus && strings.invalidName
+              }
+              containerStyle={{ paddingStart: hScale(2) }}
+              labelStyle={{ marginBottom: 0 }}
+              inputStyle={{ marginStart: 0 }}
+            />
+            <TextField
+              onChangeText={last_name => this.setState({ last_name })}
+              value={last_name}
+              authInputs
+              label={strings.lastname}
+              customMainContainer={customMainContainer}
+              errorMessage={
+                lastNameError && showLastNameErrorStatus && strings.invalidName
               }
               containerStyle={{ paddingStart: hScale(2) }}
               labelStyle={{ marginBottom: 0 }}
@@ -601,10 +720,11 @@ class EmployeeSignUpScreen extends Component {
                   isEmptyBank,
                   commericalError,
                   isEmptyCommerical,
-                  isEmptyName,
+                  isEmptyFirstName,
                   isEmptyPhone,
                   isEmptyMail,
-                  NameError,
+                  firstNameError,
+                  lastNameError,
                   phoneError,
                   MailError,
                   isEmptyPassword,

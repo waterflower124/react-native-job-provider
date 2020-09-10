@@ -5,11 +5,13 @@ import {
   KeyboardAvoidingView,
   StyleSheet,
   Alert,
-  Platform
+  Platform,
+  View,
+  Linking
 } from "react-native";
 import { AudioRecorder, AudioUtils } from "react-native-audio";
 import Sound from "react-native-sound";
-import { hScale, vScale } from "step-scale";
+import { hScale, vScale, sWidth } from "step-scale";
 import { icons } from "../assets";
 import {
   BackButton,
@@ -20,14 +22,15 @@ import {
 } from "../components";
 import { colors } from "../constants";
 import { strings } from "../strings";
-import { ImagePicker } from "../helpers";
+import { ImagePicker, getUserLocation } from "../helpers";
 import { connect } from "step-react-redux";
 import { whiteHeaderOptions } from "../navigation/options";
 import { Step_API_Helpers, StepRequest } from "step-api-client";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 
 class ChatScreen extends Component {
   state = {
-    second: {},
+    second: null,
     text: "",
     screenLoading: true,
     receiver_id: "",
@@ -42,7 +45,10 @@ class ChatScreen extends Component {
     list: [],
     sendLoading: false,
     pageNo: 1,
-    lastPage: null
+    lastPage: null,
+    my_latitude: 0,
+    my_longitude: 0,
+    task_id: 0
   };
   static navigationOptions = ({ navigation }) => {
     const avatar = navigation.getParam("avatar", null);
@@ -65,23 +71,30 @@ class ChatScreen extends Component {
     };
   };
 
+  UNSAFE_componentWillMount() {
+    const task_id = this.props.navigation.getParam("task_id", 0);
+    this.setState({
+      task_id: task_id
+    })
+  }
+
   componentWillUnmount(){
+    
     try {
       voiceMessage.stop()
     } catch (error) {
-      console.warn(error.message);
+
     }
     try {
       clearTimeout(refreshInterval)
     } catch (error) {
-      console.warn(error.message);
+
     }
   }
 
   componentDidMount() {
     const { getParam, goBack } = this.props.navigation;
     const receiver_id = getParam("receiver_id", null);
-    console.warn("component", receiver_id);
     if (receiver_id) {
       this.initializeRecorder();
       this.setState({ receiver_id }, () => this.fetchData());
@@ -89,6 +102,7 @@ class ChatScreen extends Component {
       goBack();
     }
   }
+  
   async initializeRecorder() {
     try {
       const isAuthorised = await AudioRecorder.requestAuthorization();
@@ -110,21 +124,19 @@ class ChatScreen extends Component {
           minutes = `0${minutes}`;
         }
         const currentTime = `${minutes} : ${seconds}`;
-        // console.warn('recording ..')
         console.log("currentTime", currentTime);
         this.setState({ text: currentTime, isRecording: true });
       };
 
       AudioRecorder.onFinished = (data) => {
-        console.warn("onfinished", data);
         // Android callback comes in the form of a promise instead.
-        if (Platform.OS == "ios") {
+        // if (Platform.OS == "ios") {
           const voiceMessage = data.base64;
           const didSuccess = data.status === "OK";
           const filePath = data.audioFileURL;
           const fileSize = data.audioFileSize;
           if (didSuccess) {
-            console.warn(
+            console.log(
               `Finished recording of duration ${this.state.currentTime} seconds
            at path: ${filePath}  and size of ${fileSize || 0} bytes `
             );
@@ -136,10 +148,10 @@ class ChatScreen extends Component {
               type: 2
             }, ()=> this.validateInput());
           }
-        }
+        // }
       };
     } catch (error) {
-      console.warn(error.message);
+      console.log(error.message);
     }
   }
 
@@ -148,7 +160,7 @@ class ChatScreen extends Component {
     AudioRecorder.prepareRecordingAtPath(audioPath, {
       SampleRate: 22050,
       Channels: 1,
-      AudioQuality: "Low",
+      AudioQuality: "High",
       AudioEncoding: "aac",
       AudioEncodingBitRate: 32000,
       IncludeBase64: true
@@ -158,7 +170,7 @@ class ChatScreen extends Component {
   async startRecording() {
     const { isRecording, hasMicPermission, stoppedRecording } = this.state;
     if (isRecording) {
-      console.warn("Already recording!");
+      // console.warn("Already recording!");
       return;
     }
 
@@ -181,10 +193,11 @@ class ChatScreen extends Component {
   }
 
   async stopRecording() {
+    
     const { isRecording } = this.state;
 
     if (!isRecording) {
-      console.warn("Can't stop, not recording!");
+      // console.warn("Can't stop, not recording!");
       return;
     }
 
@@ -197,6 +210,7 @@ class ChatScreen extends Component {
       console.error(error);
     }
   }
+
   async playVoiceMessage(item, index) {
     if (this.state.playingIndex != null) {
       console.warn("Can't Play, Please Wait");
@@ -217,21 +231,23 @@ class ChatScreen extends Component {
   }
 
   refreshData () {
-    console.warn("Refreshing");
+    // console.warn("Refreshing");
     this.setState({ pageNo: 1 }, () => this.fetchData())
   }
 
   async fetchData() {
-    const { pageNo, receiver_id, list } = this.state;
+    const { pageNo, receiver_id, list, task_id } = this.state;
+    
     const params = Step_API_Helpers.convertObjToParams({
       second: receiver_id,
-      page: pageNo
+      page: pageNo,
+      request_id: task_id
     });
     const isFirstPage = pageNo == 1;
-    console.warn(pageNo);
+    // console.warn(pageNo);
     try {
       const data = await StepRequest(`conversation?${params}`);
-      console.warn("data", data);
+      console.log("conversation_data: " + JSON.stringify(data));
       const newChat = typeof data == "string";
       if (!newChat) {
         this.setState({
@@ -250,7 +266,7 @@ class ChatScreen extends Component {
       }
       refreshInterval = setTimeout(() => {
         this.refreshData()
-      }, 30000);
+      }, 5000);
     } catch (error) {
       this.setState({ screenLoading: false, sendLoading: false });
       Alert.alert(error.message);
@@ -262,7 +278,7 @@ class ChatScreen extends Component {
     text.length > 0 && this.onSend();
   }
   async onSend() {
-    let { text, type, voiceMessage, uploadImage, receiver_id } = this.state;
+    let { text, type, voiceMessage, uploadImage, receiver_id, task_id } = this.state;
     console.warn(receiver_id);
     this.setState({ sendLoading: true });
     const isPhotoMessage = type === 3;
@@ -274,13 +290,13 @@ class ChatScreen extends Component {
       text = voiceMessage;
     }
     try {
-      const messageBody = { receiver_id, type, text };
-      console.warn("messageBody", messageBody);
+      const messageBody = { receiver_id, type, text, request_id: task_id };
+      // console.warn("messageBody", messageBody);
       const data = await StepRequest("messages", "POST", messageBody);
       this.setState({ text: "", voiceMessage: "", type: 1, pageNo: 1 }, () =>
         this.fetchData()
       );
-      console.warn(data);
+      // console.warn(data);
     } catch (error) {
       this.setState({ sendLoading: false });
       Alert.alert(error.message);
@@ -302,6 +318,7 @@ class ChatScreen extends Component {
       () => this.onSend()
     );
   }
+
   render() {
     const {
       container,
@@ -312,6 +329,7 @@ class ChatScreen extends Component {
       noChatImageStyle,
       uploadIconContainer
     } = styles;
+
     const {
       text,
       screenLoading,
@@ -332,10 +350,111 @@ class ChatScreen extends Component {
     const endReached = pageNo == lastPage;
     return (
       <Container loading={screenLoading}>
+        {
+          !noMessages && <MapView
+          provider = {PROVIDER_GOOGLE}
+          ref={ref => (this.myMapView = ref)}
+          showsUserLocation
+          showsMyLocationButton
+          style={{ width: hScale(354.4), height: vScale(150.3), }}
+          initialRegion={{
+            longitude: 45,
+            latitude: 25,
+            latitudeDelta: 20,
+            longitudeDelta: 20
+          }}
+          onMapReady={() => {
+            getUserLocation(
+              position => {
+                const { latitude, longitude } = position.coords;
+                console.log(latitude + "   " + longitude);
+                console.log(this.state.second.lat + "   " + this.state.second.lng);
+                var latDelta = 0.1;
+                var lngDelta = 0.1;
+                if(this.state.second != null) { 
+                  latDelta = Math.abs(latitude - this.state.second.lat);
+                  lngDelta = Math.abs(longitude - this.state.second.lng);
+                }
+                this.myMapView.animateToRegion({
+                  latitude: (latitude + this.state.second.lat) / 2,
+                  longitude: (longitude + this.state.second.lng) / 2,
+                  latitudeDelta: latDelta == 0 ? 0.1 : latDelta * 1.5,
+                  longitudeDelta: lngDelta == 0 ? 0.1 : lngDelta * 1.5
+                });
+                // todo: GeoCoding coords
+                this.setState({
+                  my_latitude: latitude,
+                  my_longitude: longitude
+                })
+              },
+              error => { }
+            );
+          }}
+          // onRegionChangeComplete={region => {
+          //   const { latitude, longitude } = region;
+          //   // this.setState({ location: { latitude, longitude } });
+          //   this.setState({
+          //     temp_latitude: latitude,
+          //     temp_longitude: longitude
+          //   })
+          // }}
+        >
+          <Marker
+            pinColor={colors.second}
+            coordinate={{latitude: this.state.my_latitude, longitude: this.state.my_longitude} || { longitude: 45, latitude: 25 }}
+            title = {"My Location"}
+            onPress = {() => {
+              const scheme = Platform.select({ ios: 'maps:0,0?q=', android: 'geo:0,0?q=' });
+              const latLng = `${this.state.my_latitude},${this.state.my_longitude}`;
+              const label = 'My Location';
+              var url = Platform.select({
+                ios: `${scheme}${label}@${latLng}`,
+                android: `${scheme}${latLng}(${label})`
+              });
+              Linking.openURL(url); 
+              if(Platform.OS == "android") {
+                Linking.openURL(url); 
+              } else {
+                url = 'http://maps.google.com/maps?daddr=' + this.state.my_latitude + ',' + this.state.my_longitude;
+                console.log("my location::" + url);
+                Linking.openURL(url).catch(err => console.error('An error occurred', err));
+              }
+              
+            }}
+          />
+          {
+            this.state.second != null &&
+              <Marker
+                pinColor={colors.first}
+                coordinate={{latitude: this.state.second.lat, longitude: this.state.second.lng} || { longitude: 45, latitude: 25 }}
+                title = {this.state.second.first_name}
+                onPress = {() => {
+                  const scheme = Platform.select({ ios: 'maps:0,0?q=', android: 'geo:0,0?q=' });
+                  const latLng = `${this.state.second.lat},${this.state.second.lng}`;
+                  const label = this.state.second.first_name;
+                  var url = Platform.select({
+                    ios: `${scheme}${label}@${latLng}`,
+                    android: `${scheme}${latLng}(${label})`
+                  });
+                  
+                  if(Platform.OS == "android") {
+                    Linking.openURL(url); 
+                  } else {
+                    
+                    url = 'http://maps.google.com/maps?daddr=' + this.state.second.lat + ',' + this.state.second.lng;
+                    console.log("his location::" + url);
+                    Linking.openURL(url).catch(err => console.error('An error occurred', err));
+                  }
+                }}
+              />
+          }
+        </MapView>
+        }
         <KeyboardAvoidingView
           style={container}
-          behavior="padding"
+          behavior={(Platform.OS === 'ios') ? "padding" : null}
           keyboardVerticalOffset={100}
+          enabled
         >
           {noMessages ? (
             <EmptyScreen

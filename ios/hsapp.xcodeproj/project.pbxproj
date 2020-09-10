@@ -26,7 +26,25 @@
 		141CF5922D55472F96B24334 /* JF-Flat-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 967836DCE3CE41ACA59EC17B /* JF-Flat-Regular.ttf */; };
 		146834051AC3E58100842450 /* libReact.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 146834041AC3E56700842450 /* libReact.a */; };
 		17A5F23DDB0E448385506987 /* libRNSound.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B819C0B70E6C46388B9B3F63 /* libRNSound.a */; };
-		2C7F973B881045C6AB7472D0 /* libRNCWebView.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E42E0225313D4435A4FFDC4E /* libRNCWebView.a */; };
+		23A5E8BF24ED2CE600FED19F /* GoogleMapsBase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 23A5E88B24ED2CE600FED19F /* GoogleMapsBase.framework */; };
+		23A5E8C124ED2CF100FED19F /* GoogleMaps.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 23A5E8C024ED2CF100FED19F /* GoogleMaps.framework */; };
+		23A5E8C324ED2CFC00FED19F /* GoogleMapsCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 23A5E8C224ED2CFC00FED19F /* GoogleMapsCore.framework */; };
+		23A5E8C524ED2E0400FED19F /* GoogleMaps.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 23A5E8C424ED2E0400FED19F /* GoogleMaps.bundle */; };
+		23A5E8C724ED303700FED19F /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 23A5E8C624ED303700FED19F /* Accelerate.framework */; };
+		23A5E8C924ED304000FED19F /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 23A5E8C824ED304000FED19F /* CoreData.framework */; };
+		23A5E8CB24ED304800FED19F /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 23A5E8CA24ED304800FED19F /* CoreGraphics.framework */; };
+		23A5E8CD24ED304F00FED19F /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 23A5E8CC24ED304F00FED19F /* CoreImage.framework */; };
+		23A5E8CF24ED305900FED19F /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 23A5E8CE24ED305900FED19F /* CoreLocation.framework */; };
+		23A5E8D224ED306500FED19F /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 23A5E8D024ED306500FED19F /* CoreText.framework */; };
+		23A5E8D324ED306500FED19F /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 23A5E8D124ED306500FED19F /* CoreTelephony.framework */; };
+		23A5E8D524ED307700FED19F /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 23A5E8D424ED307700FED19F /* GLKit.framework */; };
+		23A5E8D724ED307F00FED19F /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 23A5E8D624ED307F00FED19F /* ImageIO.framework */; };
+		23A5E8D924ED308B00FED19F /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 23A5E8D824ED308B00FED19F /* libc++.tbd */; };
+		23A5E8DB24ED309500FED19F /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 23A5E8DA24ED309500FED19F /* libz.tbd */; };
+		23A5E8DD24ED309E00FED19F /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 23A5E8DC24ED309E00FED19F /* OpenGLES.framework */; };
+		23A5E8DF24ED30A700FED19F /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 23A5E8DE24ED30A700FED19F /* QuartzCore.framework */; };
+		23A5E8E124ED30B200FED19F /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 23A5E8E024ED30B200FED19F /* SystemConfiguration.framework */; };
+		23A5E8E324ED30BC00FED19F /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 23A5E8E224ED30BC00FED19F /* UIKit.framework */; };
 		2D02E4BC1E0B4A80006451C7 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		2D02E4BD1E0B4A84006451C7 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		2D02E4BF1E0B4AB3006451C7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
@@ -132,13 +150,6 @@
 			proxyType = 2;
 			remoteGlobalIDString = 42F559BA1CFC90C400DC3F84;
 			remoteInfo = RNAudio;
-		};
-		1876E41524D1732800CFCB63 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1EA476A1B6244550A7F6FE81 /* RNCWebView.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 134814201AA4EA6300B7C361;
-			remoteInfo = RNCWebView;
 		};
 		189D454F22B29DBA0013BFCD /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -458,7 +469,25 @@
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = hsapp/main.m; sourceTree = "<group>"; };
 		146833FF1AC3E56700842450 /* React.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = React.xcodeproj; path = "../node_modules/react-native/React/React.xcodeproj"; sourceTree = "<group>"; };
 		19DFE71803284C2282A41EB6 /* libRNAudio.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNAudio.a; sourceTree = "<group>"; };
-		1EA476A1B6244550A7F6FE81 /* RNCWebView.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNCWebView.xcodeproj; path = "../node_modules/react-native-webview/ios/RNCWebView.xcodeproj"; sourceTree = "<group>"; };
+		23A5E88B24ED2CE600FED19F /* GoogleMapsBase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = GoogleMapsBase.framework; sourceTree = "<group>"; };
+		23A5E8C024ED2CF100FED19F /* GoogleMaps.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = GoogleMaps.framework; sourceTree = "<group>"; };
+		23A5E8C224ED2CFC00FED19F /* GoogleMapsCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = GoogleMapsCore.framework; sourceTree = "<group>"; };
+		23A5E8C424ED2E0400FED19F /* GoogleMaps.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = GoogleMaps.bundle; path = GoogleMaps.framework/Resources/GoogleMaps.bundle; sourceTree = "<group>"; };
+		23A5E8C624ED303700FED19F /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
+		23A5E8C824ED304000FED19F /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		23A5E8CA24ED304800FED19F /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		23A5E8CC24ED304F00FED19F /* CoreImage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreImage.framework; path = System/Library/Frameworks/CoreImage.framework; sourceTree = SDKROOT; };
+		23A5E8CE24ED305900FED19F /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
+		23A5E8D024ED306500FED19F /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
+		23A5E8D124ED306500FED19F /* CoreTelephony.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreTelephony.framework; path = System/Library/Frameworks/CoreTelephony.framework; sourceTree = SDKROOT; };
+		23A5E8D424ED307700FED19F /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
+		23A5E8D624ED307F00FED19F /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
+		23A5E8D824ED308B00FED19F /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
+		23A5E8DA24ED309500FED19F /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
+		23A5E8DC24ED309E00FED19F /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
+		23A5E8DE24ED30A700FED19F /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		23A5E8E024ED30B200FED19F /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
+		23A5E8E224ED30BC00FED19F /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		2D02E47B1E0B4A5D006451C7 /* hsapp-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "hsapp-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D02E4901E0B4A5D006451C7 /* hsapp-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "hsapp-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D16E6891FA4F8E400B85C8A /* libReact.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libReact.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -486,7 +515,6 @@
 		CA7698177D59486F8207C064 /* BVLinearGradient.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = BVLinearGradient.xcodeproj; path = "../node_modules/react-native-linear-gradient/BVLinearGradient.xcodeproj"; sourceTree = "<group>"; };
 		D48EA5DFC3B84A7F928608DD /* RNImagePicker.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNImagePicker.xcodeproj; path = "../node_modules/react-native-image-picker/ios/RNImagePicker.xcodeproj"; sourceTree = "<group>"; };
 		D57CEF9DBD1448E993C7AC30 /* libRCTOneSignal.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRCTOneSignal.a; sourceTree = "<group>"; };
-		E42E0225313D4435A4FFDC4E /* libRNCWebView.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNCWebView.a; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
 		F4F7EFDCA9134DC9836FD5CF /* libRNImagePicker.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNImagePicker.a; sourceTree = "<group>"; };
@@ -498,9 +526,25 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				23A5E8E324ED30BC00FED19F /* UIKit.framework in Frameworks */,
+				23A5E8E124ED30B200FED19F /* SystemConfiguration.framework in Frameworks */,
+				23A5E8DF24ED30A700FED19F /* QuartzCore.framework in Frameworks */,
+				23A5E8DD24ED309E00FED19F /* OpenGLES.framework in Frameworks */,
+				23A5E8DB24ED309500FED19F /* libz.tbd in Frameworks */,
+				23A5E8D924ED308B00FED19F /* libc++.tbd in Frameworks */,
+				23A5E8D724ED307F00FED19F /* ImageIO.framework in Frameworks */,
+				23A5E8D524ED307700FED19F /* GLKit.framework in Frameworks */,
+				23A5E8D224ED306500FED19F /* CoreText.framework in Frameworks */,
+				23A5E8D324ED306500FED19F /* CoreTelephony.framework in Frameworks */,
+				23A5E8CF24ED305900FED19F /* CoreLocation.framework in Frameworks */,
+				23A5E8CD24ED304F00FED19F /* CoreImage.framework in Frameworks */,
+				23A5E8CB24ED304800FED19F /* CoreGraphics.framework in Frameworks */,
+				23A5E8C924ED304000FED19F /* CoreData.framework in Frameworks */,
+				23A5E8C724ED303700FED19F /* Accelerate.framework in Frameworks */,
 				ED297163215061F000B7C4FE /* JavaScriptCore.framework in Frameworks */,
 				ADBDB9381DFEBF1600ED6528 /* libRCTBlob.a in Frameworks */,
 				11D1A2F320CAFA9E000508D9 /* libRCTAnimation.a in Frameworks */,
+				23A5E8C324ED2CFC00FED19F /* GoogleMapsCore.framework in Frameworks */,
 				146834051AC3E58100842450 /* libReact.a in Frameworks */,
 				00C302E51ABCBA2D00DB3ED1 /* libRCTActionSheet.a in Frameworks */,
 				00C302E71ABCBA2D00DB3ED1 /* libRCTGeolocation.a in Frameworks */,
@@ -513,6 +557,7 @@
 				139FDEF61B0652A700C62182 /* libRCTWebSocket.a in Frameworks */,
 				5BB4AB00A12B4694A9539C43 /* libRNGestureHandler.a in Frameworks */,
 				B26FEE28FB8B421B9AA00323 /* libBVLinearGradient.a in Frameworks */,
+				23A5E8C124ED2CF100FED19F /* GoogleMaps.framework in Frameworks */,
 				3CCA5E331E2C4D049BCEEC12 /* libReactNativeLocalization.a in Frameworks */,
 				F544D6D978954C48AB46EEC2 /* libRCTRestart.a in Frameworks */,
 				F914AADFE16E4F2F89DCE126 /* libRNCAsyncStorage.a in Frameworks */,
@@ -521,7 +566,7 @@
 				63FB885252B14A528326C50A /* libRNAudio.a in Frameworks */,
 				17A5F23DDB0E448385506987 /* libRNSound.a in Frameworks */,
 				08D0BFCEEE5B464E8EE29E14 /* libAirMaps.a in Frameworks */,
-				2C7F973B881045C6AB7472D0 /* libRNCWebView.a in Frameworks */,
+				23A5E8BF24ED2CE600FED19F /* GoogleMapsBase.framework in Frameworks */,
 				03EEC407CD3F49AA9545ABFD /* libRNCGeolocation.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -695,14 +740,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		1876E41224D1732800CFCB63 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				1876E41624D1732800CFCB63 /* libRNCWebView.a */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		189D452922B29DB80013BFCD /* Recovered References */ = {
 			isa = PBXGroup;
 			children = (
@@ -717,7 +754,6 @@
 				19DFE71803284C2282A41EB6 /* libRNAudio.a */,
 				B819C0B70E6C46388B9B3F63 /* libRNSound.a */,
 				411236D6FFC4460E85F0488C /* libAirMaps.a */,
-				E42E0225313D4435A4FFDC4E /* libRNCWebView.a */,
 				BAEF4739584A4CBF9302EBFB /* libRNCGeolocation.a */,
 			);
 			name = "Recovered References";
@@ -760,6 +796,25 @@
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				23A5E8E224ED30BC00FED19F /* UIKit.framework */,
+				23A5E8E024ED30B200FED19F /* SystemConfiguration.framework */,
+				23A5E8DE24ED30A700FED19F /* QuartzCore.framework */,
+				23A5E8DC24ED309E00FED19F /* OpenGLES.framework */,
+				23A5E8DA24ED309500FED19F /* libz.tbd */,
+				23A5E8D824ED308B00FED19F /* libc++.tbd */,
+				23A5E8D624ED307F00FED19F /* ImageIO.framework */,
+				23A5E8D424ED307700FED19F /* GLKit.framework */,
+				23A5E8D124ED306500FED19F /* CoreTelephony.framework */,
+				23A5E8D024ED306500FED19F /* CoreText.framework */,
+				23A5E8CE24ED305900FED19F /* CoreLocation.framework */,
+				23A5E8CC24ED304F00FED19F /* CoreImage.framework */,
+				23A5E8CA24ED304800FED19F /* CoreGraphics.framework */,
+				23A5E8C824ED304000FED19F /* CoreData.framework */,
+				23A5E8C624ED303700FED19F /* Accelerate.framework */,
+				23A5E8C424ED2E0400FED19F /* GoogleMaps.bundle */,
+				23A5E8C224ED2CFC00FED19F /* GoogleMapsCore.framework */,
+				23A5E8C024ED2CF100FED19F /* GoogleMaps.framework */,
+				23A5E88B24ED2CE600FED19F /* GoogleMapsBase.framework */,
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				ED2971642150620600B7C4FE /* JavaScriptCore.framework */,
 				2D16E6891FA4F8E400B85C8A /* libReact.a */,
@@ -810,7 +865,6 @@
 				07C9F155719946249C5FB0F7 /* RNAudio.xcodeproj */,
 				1315344D74B54552841ED7D9 /* RNSound.xcodeproj */,
 				AABF2296912B40B48A5F2024 /* AirMaps.xcodeproj */,
-				1EA476A1B6244550A7F6FE81 /* RNCWebView.xcodeproj */,
 				97A995B9B3B542F4A9D0FCFE /* RNCGeolocation.xcodeproj */,
 			);
 			name = Libraries;
@@ -969,7 +1023,7 @@
 				ORGANIZATIONNAME = Facebook;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
-						DevelopmentTeam = 97R2VFAE6Q;
+						DevelopmentTeam = 4T9P5824G2;
 						SystemCapabilities = {
 							com.apple.BackgroundModes = {
 								enabled = 1;
@@ -1084,10 +1138,6 @@
 					ProjectRef = 97A995B9B3B542F4A9D0FCFE /* RNCGeolocation.xcodeproj */;
 				},
 				{
-					ProductGroup = 1876E41224D1732800CFCB63 /* Products */;
-					ProjectRef = 1EA476A1B6244550A7F6FE81 /* RNCWebView.xcodeproj */;
-				},
-				{
 					ProductGroup = 189D455722B29DBA0013BFCD /* Products */;
 					ProjectRef = 55284C0D91B9470583425108 /* RNGestureHandler.xcodeproj */;
 				},
@@ -1185,13 +1235,6 @@
 			fileType = archive.ar;
 			path = libRNAudio.a;
 			remoteRef = 1865098B245B0AF1007E870E /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		1876E41624D1732800CFCB63 /* libRNCWebView.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libRNCWebView.a;
-			remoteRef = 1876E41524D1732800CFCB63 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		189D455022B29DBA0013BFCD /* libjsi.a */ = {
@@ -1478,6 +1521,7 @@
 				13B07FBD1A68108700A75B9A /* LaunchScreen.xib in Resources */,
 				5B82E5655E594DF4BA80EE20 /* arial.ttf in Resources */,
 				141CF5922D55472F96B24334 /* JF-Flat-Regular.ttf in Resources */,
+				23A5E8C524ED2E0400FED19F /* GoogleMaps.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1585,9 +1629,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_ENTITLEMENTS = hsapp/hsapp.entitlements;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 6;
 				DEAD_CODE_STRIPPING = NO;
-				DEVELOPMENT_TEAM = 97R2VFAE6Q;
+				DEVELOPMENT_TEAM = 4T9P5824G2;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../node_modules/react-native-gesture-handler/ios/**",
@@ -1600,17 +1648,13 @@
 					"$(SRCROOT)/../node_modules/react-native-audio/ios",
 					"$(SRCROOT)/../node_modules/react-native-sound/RNSound",
 					"$(SRCROOT)/../node_modules/react-native-maps/lib/ios/**",
-					"$(SRCROOT)/../node_modules/react-native-webview/ios",
 					"$(SRCROOT)/../node_modules/@react-native-community/geolocation/ios",
+					"$(SRCROOT)/**",
 				);
 				INFOPLIST_FILE = hsapp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/Home Job\"",
-					"\"$(SRCROOT)/Home Job\"",
-				);
-				MARKETING_VERSION = 1.1;
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				MARKETING_VERSION = 1.2;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -1628,8 +1672,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_ENTITLEMENTS = hsapp/hsapp.entitlements;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 97R2VFAE6Q;
+				CURRENT_PROJECT_VERSION = 6;
+				DEVELOPMENT_TEAM = 4T9P5824G2;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../node_modules/react-native-gesture-handler/ios/**",
@@ -1642,17 +1690,13 @@
 					"$(SRCROOT)/../node_modules/react-native-audio/ios",
 					"$(SRCROOT)/../node_modules/react-native-sound/RNSound",
 					"$(SRCROOT)/../node_modules/react-native-maps/lib/ios/**",
-					"$(SRCROOT)/../node_modules/react-native-webview/ios",
 					"$(SRCROOT)/../node_modules/@react-native-community/geolocation/ios",
+					"$(SRCROOT)/**",
 				);
 				INFOPLIST_FILE = hsapp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/Home Job\"",
-					"\"$(SRCROOT)/Home Job\"",
-				);
-				MARKETING_VERSION = 1.1;
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				MARKETING_VERSION = 1.2;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -1688,7 +1732,6 @@
 					"$(SRCROOT)/../node_modules/react-native-audio/ios",
 					"$(SRCROOT)/../node_modules/react-native-sound/RNSound",
 					"$(SRCROOT)/../node_modules/react-native-maps/lib/ios/**",
-					"$(SRCROOT)/../node_modules/react-native-webview/ios",
 					"$(SRCROOT)/../node_modules/@react-native-community/geolocation/ios",
 				);
 				INFOPLIST_FILE = "hsapp-tvOS/Info.plist";
@@ -1733,7 +1776,6 @@
 					"$(SRCROOT)/../node_modules/react-native-audio/ios",
 					"$(SRCROOT)/../node_modules/react-native-sound/RNSound",
 					"$(SRCROOT)/../node_modules/react-native-maps/lib/ios/**",
-					"$(SRCROOT)/../node_modules/react-native-webview/ios",
 					"$(SRCROOT)/../node_modules/@react-native-community/geolocation/ios",
 				);
 				INFOPLIST_FILE = "hsapp-tvOS/Info.plist";
@@ -1777,7 +1819,6 @@
 					"$(SRCROOT)/../node_modules/react-native-audio/ios",
 					"$(SRCROOT)/../node_modules/react-native-sound/RNSound",
 					"$(SRCROOT)/../node_modules/react-native-maps/lib/ios/**",
-					"$(SRCROOT)/../node_modules/react-native-webview/ios",
 					"$(SRCROOT)/../node_modules/@react-native-community/geolocation/ios",
 				);
 				INFOPLIST_FILE = "hsapp-tvOSTests/Info.plist";
@@ -1821,7 +1862,6 @@
 					"$(SRCROOT)/../node_modules/react-native-audio/ios",
 					"$(SRCROOT)/../node_modules/react-native-sound/RNSound",
 					"$(SRCROOT)/../node_modules/react-native-maps/lib/ios/**",
-					"$(SRCROOT)/../node_modules/react-native-webview/ios",
 					"$(SRCROOT)/../node_modules/@react-native-community/geolocation/ios",
 				);
 				INFOPLIST_FILE = "hsapp-tvOSTests/Info.plist";

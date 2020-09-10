@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { StyleSheet, Alert } from "react-native";
-import { WebView } from "react-native-webview";
+// import { WebView } from "react-native-webview";
 import { vScale } from "step-scale";
 import { BackButton, Container } from "../components";
 import { whiteHeaderOptions } from "../navigation/options";
@@ -20,7 +20,7 @@ class PaymentWebviewScreen extends Component {
 
     return (
       <Container style={container}>
-        <WebView
+        {/* <WebView
           useWebKit
           startInLoadingState
           source={{ uri }}
@@ -41,7 +41,7 @@ class PaymentWebviewScreen extends Component {
               console.warn("URL Changed to ", url);
             }
           }}
-        />
+        /> */}
       </Container>
     );
   }

@@ -9,7 +9,8 @@ import {
   TouchableOpacity,
   View,
   KeyboardAvoidingView,
-  I18nManager
+  I18nManager,
+  AsyncStorage
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { fScale, hScale, sWidth, vScale } from "step-scale";
@@ -18,7 +19,7 @@ import { BackButton, Button, Container, TextField } from "../components";
 import { ModalButton } from "../components/ModalButton";
 import { colors } from "../constants";
 import { strings } from "../strings";
-import { ImagePicker, actions, convertNumbers2English } from "../helpers";
+import { ImagePicker, actions, convertNumbers2English, GoogleMapiAPIKey } from "../helpers";
 import { connect } from "step-react-redux";
 import { StepRequest } from "step-api-client";
 
@@ -26,17 +27,18 @@ class EditEmployeeProfileScreen extends Component {
   constructor(props) {
     super(props);
     const { user, cities, categories, banks } = this.props;
-    console.warn("user", user);
+    console.log("user:::", JSON.stringify(user));
     let selectedCity,
       selectedBank,
       selectedRange,
       selectedService = [];
-    cities.forEach(city => {
-      if (city.id == user.data.city_id) {
-        selectedCity = { name: city.name, id: city.id };
-        console.warn(selectedCity);
-      }
-    });
+    // cities.forEach(city => {
+    //   if (city.id == user.data.city_id) {
+    //     selectedCity = { name: city.name, id: city.id };
+    //     console.warn(selectedCity);
+    //   }
+    // });
+    selectedCity = user.data.city;
     range.forEach(range => {
       if (range.id == user.data.distance) {
         selectedRange = { name: range.name, id: range.id };
@@ -55,14 +57,17 @@ class EditEmployeeProfileScreen extends Component {
     });
 
     this.state = {
-      name: user.data.name,
+      first_name: user.data.first_name,
+      last_name: user.data.last_name,
       image: user.data.avatar,
       mobile: user.data.mobile,
       commercial: user.data.commercial ? user.data.commercial : "",
       bankAccount: user.data.bank_no,
       uploadImage: null,
       modalVisible: false,
-      location: { longitude: user.data.emp_long, latitude: user.data.emp_lat },
+      location: user.data.address,
+      lat: user.data.lat,
+      lng: user.data.lng,
       password: "",
       confirmPassword: "",
       error: "",
@@ -70,7 +75,6 @@ class EditEmployeeProfileScreen extends Component {
       selectedRange,
       selectedService,
       selectedBank,
-      chooseCity: false,
       chooseRange: false,
       chooseService: false,
       chooseBank: false,
@@ -78,7 +82,7 @@ class EditEmployeeProfileScreen extends Component {
       rangeModalVisible: false,
       serviceModalVisible: false,
       bankModalVisible: false,
-      submittedCity: { name: selectedCity.name },
+      // submittedCity: { name: selectedCity.name },
       submittedRange: { name: selectedRange.name },
       submittedService: selectedService,
       submittedBank: { name: selectedBank.name },
@@ -95,8 +99,10 @@ class EditEmployeeProfileScreen extends Component {
     isEmptyBank,
     commericalError,
     isEmptyCommerical,
-    isEmptyName,
-    NameError,
+    isEmptyFirstName,
+    isEmptyLastName,
+    firstNameError,
+    lastNameError,
     isEmptyPhone,
     phoneError,
     isEmptyPassword,
@@ -105,14 +111,12 @@ class EditEmployeeProfileScreen extends Component {
     confirmPasswordError
   ) {
     const {
-      submittedCity,
+      selectedCity,
       submittedRange,
       submittedService,
       submittedBank
     } = this.state;
-    if (submittedCity == "") {
-      this.setState({ chooseCity: true });
-    } else if (submittedRange == "") {
+    if (submittedRange == "") {
       this.setState({ chooseRange: true });
     } else if (submittedService.length == 0) {
       this.setState({ chooseService: true });
@@ -124,8 +128,10 @@ class EditEmployeeProfileScreen extends Component {
         isEmptyBank,
         commericalError,
         isEmptyCommerical,
-        isEmptyName,
-        NameError,
+        isEmptyFirstName,
+        isEmptyLastName,
+        firstNameError,
+        lastNameError,
         isEmptyPhone,
         phoneError,
         isEmptyPassword,
@@ -135,13 +141,17 @@ class EditEmployeeProfileScreen extends Component {
       );
     }
   }
+
+
   validateInputs(
     bankError,
     isEmptyBank,
     commericalError,
     isEmptyCommerical,
-    isEmptyName,
-    NameError,
+    isEmptyFirstName,
+    isEmptyLastName,
+    firstNameError,
+    lastNameError,
     isEmptyPhone,
     phoneError,
     isEmptyPassword,
@@ -154,7 +164,9 @@ class EditEmployeeProfileScreen extends Component {
       error = "bank";
     } else if ((isEmptyPhone, phoneError)) {
       error = "phone";
-    } else if ((isEmptyName, NameError)) {
+    } else if ((isEmptyFirstName, firstNameError)) {
+      error = "name";
+    } else if ((isEmptyLastName, lastNameError)) {
       error = "name";
     } else if ((isEmptyPassword, passwordError)) {
       error = "password";
@@ -183,7 +195,8 @@ class EditEmployeeProfileScreen extends Component {
   editAccount() {
     const { user } = this.props;
     let {
-      name,
+      first_name,
+      last_name,
       password,
       confirmPassword,
       uploadImage,
@@ -196,6 +209,8 @@ class EditEmployeeProfileScreen extends Component {
       bankAccount,
       commercial,
       location,
+      lat,
+      lng,
       oldCategories
     } = this.state;
     if (commercial == "") {
@@ -204,27 +219,26 @@ class EditEmployeeProfileScreen extends Component {
     const mainData = user.data;
     const updatedData = {};
     const newUploadedImage = image != mainData.avatar;
-    const newCity = selectedCity.id != mainData.city_id;
     const newRange = selectedRange.id != mainData.distance;
     const newCategory = selectedService != oldCategories;
     const newBank = selectedBank.id != mainData.bank_id;
     const newBankAccount = bankAccount != mainData.bank_no;
     const newCommercial = commercial != mainData.commercial;
-    const newName = name != mainData.name;
+    const newFirstName = first_name != mainData.first_name;
+    const newLastName = last_name != mainData.last_name;
     const newMobile = mobile != mainData.mobile;
     const newPassword = password.length != 0 && password === confirmPassword;
-    const newLocationLongitude = location.longitude != mainData.emp_long;
-    const newLocationLatitude = location.latitude != mainData.emp_lat;
-    const newLocation = newLocationLongitude || newLocationLatitude;
+    
+    const newLocation = location != user.data.address;
     if (newUploadedImage) {
       updatedData.avatar = uploadImage;
     }
-    if (newCity) {
-      updatedData.city_id = selectedCity.id;
-    }
+    
     if (newLocation) {
-      updatedData.emp_long = location.longitude;
-      updatedData.emp_lat = location.latitude;
+      updatedData.lat = lat;
+      updatedData.lng = lng;
+      updatedData.city = selectedCity;
+      updatedData.address = location;
     }
 
     if (newRange) {
@@ -242,8 +256,11 @@ class EditEmployeeProfileScreen extends Component {
     if (newCommercial) {
       updatedData.commercial = commercial;
     }
-    if (newName) {
-      updatedData.name = name;
+    if (newFirstName) {
+      updatedData.first_name = first_name;
+    }
+    if (newLastName) {
+      updatedData.last_name = last_name;
     }
     if (newMobile) {
       updatedData.mobile = mobile;
@@ -253,15 +270,14 @@ class EditEmployeeProfileScreen extends Component {
     }
     const notChangedData =
       !newUploadedImage &&
-      !newCity &&
-      !newLocationLongitude &&
-      !newLocationLatitude &&
+      !newLocation &&
       !newCategory &&
       !newBank &&
       !newRange &&
       !newBankAccount &&
       !newCommercial &&
-      !newName &&
+      !newFirstName &&
+      !newLastName &&
       !newMobile &&
       !newPassword;
     if (!notChangedData) {
@@ -270,21 +286,92 @@ class EditEmployeeProfileScreen extends Component {
       this.props.navigation.goBack();
     }
   }
+
+
   async editEmployeeAccount(updatedData) {
-    console.warn("updatedData", updatedData);
+    console.log("updatedData", JSON.stringify(updatedData));
     this.setState({ loading: true });
     try {
       const data = await actions.updateUser(updatedData);
-      console.warn("data", data);
+      console.log("update user data", JSON.stringify(data));
       const profile = await StepRequest("profile");
+      console.log("response profile: ", JSON.stringify(profile));
       actions.setUserData({ data: profile });
-      console.warn("profile", profile);
-      Alert.alert(data);
       this.props.navigation.navigate("NewTasks");
     } catch (error) {
       this.setState({ loading: false });
       Alert.alert(error.message);
     }
+  }
+
+  getCurrentAddress = async() => {
+    this.setState({
+        screenLoading: true
+    })
+    var parameter = "";
+    let languageCode = await AsyncStorage.getItem('languageCode')
+    if (languageCode == "en") {
+      parameter = "latlng=" + this.state.lat + "," + this.state.lng + "&key=" + GoogleMapiAPIKey;
+    } else {
+      parameter = "latlng=" + this.state.lat + "," + this.state.lng + "&language=ar&key=" + GoogleMapiAPIKey;
+    }
+    var city_exist = false;
+    await fetch("https://maps.googleapis.com/maps/api/geocode/json?" + parameter, {
+        method: "GET",
+    })
+    .then(response => {
+        return response.json();
+    })
+    .then(responseData => {
+        console.log(JSON.stringify(responseData))
+        if(responseData.status != "OK") {
+            Alert.alert("Warning!", "Error occurred in getting address. Please try again.")
+        } else {
+            if(responseData.results.length > 0) {
+                this.setState({
+                    location: responseData.results[0].formatted_address,
+                })
+                for(i = 0; i < responseData.results[0].address_components.length; i ++) {
+                    for(j = 0; j < responseData.results[0].address_components[i].types.length; j ++) {
+                        if(responseData.results[0].address_components[i].types[j] == "locality") {
+                            this.setState({
+                              selectedCity: responseData.results[0].address_components[i].long_name
+                            })
+                            city_exist = true;
+                            break;
+                        }
+                    }
+                    if(city_exist) {
+                      break;
+                    } 
+                }
+                if(!city_exist) {
+                    for(i = 0; i < responseData.results[0].address_components.length; i ++) {
+                        for(j = 0; j < responseData.results[0].address_components[i].types.length; j ++) {
+                            if(responseData.results[0].address_components[i].types[j] == "administrative_area_level_1") {
+                                this.setState({
+                                    selectedCity: responseData.results[0].address_components[i].long_name
+                                })
+                                city_exist = true;
+                                break;
+                            }
+                        }
+                        if(city_exist) {
+                            break;
+                        } 
+                    }
+                }
+            }
+        }
+        this.setState({ modalVisible: false })
+    })
+    .catch(error => {
+        console.log(error)
+    });
+
+    this.setState({
+        screenLoading: false
+    })
   }
 
   render() {
@@ -312,9 +399,12 @@ class EditEmployeeProfileScreen extends Component {
       titleStyle,
       avatarStyle
     } = styles;
+
     const {
       modalVisible,
       location,
+      lat,
+      lng,
       mobile,
       commercial,
       bankAccount,
@@ -325,7 +415,6 @@ class EditEmployeeProfileScreen extends Component {
       selectedRange,
       selectedService,
       selectedBank,
-      chooseCity,
       chooseRange,
       chooseService,
       chooseBank,
@@ -338,11 +427,12 @@ class EditEmployeeProfileScreen extends Component {
       submittedService,
       submittedBank,
       uploadImage,
-      name,
+      first_name,
+      last_name,
       image
     } = this.state;
-    console.warn(submittedCity);
-    const notSelectedCity = submittedCity == "";
+
+    
     const notSelectedRange = submittedRange == "";
     const notSelectedService = submittedService.length == 0;
     const notSelectedBank = submittedBank == "";
@@ -362,11 +452,14 @@ class EditEmployeeProfileScreen extends Component {
     const commericalError = isNaN(commercial) || commercial.length < 4;
     const showcommercialError =
       commercial.length > 0 || isCommericalRegisterError;
-    const isEmptyName = name.length == 0;
-    const NameError = name.length < 3;
+    const isEmptyFirstName = first_name.length == 0;
+    const isEmptyLastName = last_name.length == 0;
+    const firstNameError = first_name.length < 3;
+    const lastNameError = last_name.length < 3;
     const phoneError =
       isNaN(mobile) || mobile.length != 10 || !mobile.startsWith(0);
-    const showNameErrorStatus = name.length > 0 || isNameError;
+    const showFirstNameErrorStatus = first_name.length > 0 || isNameError;
+    const showLastNameErrorStatus = last_name.length > 0 || isNameError;
     const showPhoneError = mobile.length > 0 || isPhoneError;
     const passwordError = password.length < 6 && password.lenght > 0;
     const showPasswordErrorStatus = password.length > 0 || isPasswordError;
@@ -374,7 +467,7 @@ class EditEmployeeProfileScreen extends Component {
     const showConfirmPasswordErrorStatus =
       confirmPassword.length > 0 || isConfirmPasswordError;
 
-    const { cities, banks, categories } = this.props;
+    const { banks, categories } = this.props;
     const { isRTL } = I18nManager;
 
     return (
@@ -386,10 +479,10 @@ class EditEmployeeProfileScreen extends Component {
             showsMyLocationButton
             style={{ flex: 1, width: sWidth }}
             initialRegion={{
-              longitude: location.longitude,
-              latitude: location.latitude,
-              latitudeDelta: 0.01,
-              longitudeDelta: 0.01
+              latitude: lat,
+              longitude: lng,
+              latitudeDelta: 0.05,
+              longitudeDelta: 0.05
             }}
             // onMapReady={() => {
             //   getUserLocation(
@@ -408,12 +501,15 @@ class EditEmployeeProfileScreen extends Component {
             // }}
             onRegionChangeComplete={region => {
               const { latitude, longitude } = region;
-              this.setState({ location: { latitude, longitude } });
+              this.setState({ 
+                lat: latitude,
+                lng: longitude
+               });
             }}
           >
             <Marker
               pinColor={colors.second}
-              coordinate={location || { longitude: 45, latitude: 25 }}
+              coordinate={{latitude: lat, longitude: lng} || { longitude: 45, latitude: 25 }}
             />
           </MapView>
           <BackButton
@@ -426,7 +522,7 @@ class EditEmployeeProfileScreen extends Component {
             linearCustomStyle={linearStyle}
             errorContainerCustom={errorContainerCustom}
             titleStyle={titleStyle}
-            onPress={() => this.setState({ modalVisible: false })}
+            onPress={() => this.getCurrentAddress()}
           />
         </Modal>
         <ScrollView
@@ -459,23 +555,7 @@ class EditEmployeeProfileScreen extends Component {
                 <Text style={uploadTextStyle}>{strings.upload}</Text>
               </TouchableOpacity>
             </View>
-            <ModalButton
-              title={strings.city}
-              data={cities}
-              errorMessage={notSelectedCity && chooseCity && strings.chooseCity}
-              onSelect={item => this.setState({ selectedCity: item })}
-              onCloseModal={() => this.setState({ cityModalVisible: false })}
-              onPressSave={() =>
-                this.setState({
-                  cityModalVisible: false,
-                  submittedCity: selectedCity
-                })
-              }
-              onPress={() => this.setState({ cityModalVisible: true })}
-              modalVisible={cityModalVisible}
-              selectedItem={selectedCity}
-              submittedItem={submittedCity}
-            />
+            
             <TouchableOpacity
               style={locationButton}
               onPress={() => this.setState({ modalVisible: true })}
@@ -491,7 +571,7 @@ class EditEmployeeProfileScreen extends Component {
               </Text>
               <View style={locationContainer}>
                 <Text style={[textStyle, { marginBottom: vScale(10.6) }]}>
-                  {strings.location}
+                  {location}
                 </Text>
                 <Image
                   source={icons.loc}
@@ -501,6 +581,16 @@ class EditEmployeeProfileScreen extends Component {
               </View>
               <View style={borderSeparator} />
             </TouchableOpacity>
+            <TextField
+              value={selectedCity}
+              authInputs
+              disableInput = {true}
+              label={strings.city}
+              customMainContainer={customMainContainer}
+              containerStyle={{ paddingStart: hScale(2) }}
+              labelStyle={{ marginBottom: 0 }}
+              inputStyle={{ marginStart: 0 }}
+            />
             <ModalButton
               title={strings.theRangeYouWillBeWorkingOn}
               data={range}
@@ -591,13 +681,26 @@ class EditEmployeeProfileScreen extends Component {
               inputStyle={{ marginStart: 0 }}
             />
             <TextField
-              onChangeText={name => this.setState({ name })}
-              value={name}
+              onChangeText={first_name => this.setState({ first_name })}
+              value={first_name}
               authInputs
-              label={strings.yourname}
+              label={strings.firstname}
               customMainContainer={customMainContainer}
               errorMessage={
-                NameError && showNameErrorStatus && strings.invalidName
+                firstNameError && showFirstNameErrorStatus && strings.invalidName
+              }
+              containerStyle={{ paddingStart: hScale(2) }}
+              labelStyle={{ marginBottom: 0 }}
+              inputStyle={{ marginStart: 0 }}
+            />
+            <TextField
+              onChangeText={last_name => this.setState({ last_name })}
+              value={last_name}
+              authInputs
+              label={strings.lastname}
+              customMainContainer={customMainContainer}
+              errorMessage={
+                lastNameError && showLastNameErrorStatus && strings.invalidName
               }
               containerStyle={{ paddingStart: hScale(2) }}
               labelStyle={{ marginBottom: 0 }}
@@ -661,8 +764,10 @@ class EditEmployeeProfileScreen extends Component {
                   isEmptyBank,
                   commericalError,
                   isEmptyCommerical,
-                  isEmptyName,
-                  NameError,
+                  isEmptyFirstName,
+                  isEmptyLastName,
+                  firstNameError,
+                  lastNameError,
                   isEmptyPhone,
                   phoneError,
                   isEmptyPassword,

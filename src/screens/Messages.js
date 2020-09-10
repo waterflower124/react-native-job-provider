@@ -17,7 +17,7 @@ class MessagesScreen extends Component {
   }
   state = {
     screenLoading: true,
-    pageNo: null,
+    pageNo: 1,
     last_page: null,
     list: [],
     listLoading: false
@@ -32,8 +32,9 @@ class MessagesScreen extends Component {
       page: pageNo
     });
     try {
-      const list = await StepRequest(`messages/?${params}`);
-      console.warn("list", list);
+
+      const list = await StepRequest(`messages?${params}`);
+      console.log("list", JSON.stringify(list));
       this.setState({
         list: list.data,
         last_page: list.last_page,
@@ -91,7 +92,8 @@ class MessagesScreen extends Component {
                     onPress={() =>
                       navigation.navigate("Chat", {
                         receiver_id: second.id,
-                        avatar: second.avatar
+                        avatar: second.avatar,
+                        task_id: item.request_id
                       })
                     }
                     item={item}

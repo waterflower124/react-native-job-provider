@@ -89,6 +89,7 @@ class NotificationScreen extends Component {
     const { pageNo, data } = this.state;
     const isFirstPage = pageNo == 1;
     try {
+      console.log("1111111111   " + `notifications?page=${pageNo}`)
       const response = await StepRequest(`notifications?page=${pageNo}`);
       this.setState({
         data: isFirstPage ? response.data : [...data, ...response.data],
@@ -96,7 +97,7 @@ class NotificationScreen extends Component {
         last_page: response.last_page,
         listLoading: false
       });
-      console.warn("data", data);
+      console.log("get notification response", data);
     } catch (error) {
       this.setState({ screenLoading: false, listLoading: false });
 
@@ -122,8 +123,7 @@ class NotificationScreen extends Component {
       this.setState({ confirmLoading: null, pageNo: 1 }, () =>
         this.getNotifications()
       );
-      console.warn("data", data);
-      console.warn("acceptBody", acceptBody);
+      console.log("accept offer response", data);
     } catch (error) {
       this.setState({ confirmLoading: null });
       Alert.alert(error.message);
@@ -138,14 +138,13 @@ class NotificationScreen extends Component {
 
   async completeRequest(order_id) {
     this.setState({ confirmLoading: order_id });
-    console.warn("order_id", order_id);
     try {
       const data = await StepRequest("employee-orders/statusDone", "POST", {
         order_id
       });
       await actions.refreshWalletBalance();
       this.setState({ confirmLoading: null });
-      console.warn("completed", data);
+      console.log("completed response", data);
     } catch (error) {
       this.setState({ confirmLoading: null });
       Alert.alert(error.message);
@@ -173,7 +172,7 @@ class NotificationScreen extends Component {
     try {
       this.setState({ errors: [] });
       const data = await StepRequest("order-review", "POST", body);
-      console.warn("data", data);
+      console.log("review response", data);
       this.refreshNotifications();
       this.setState({ modalVisible: false, rate: 0, feedback: "" });
     } catch (error) {
@@ -185,7 +184,7 @@ class NotificationScreen extends Component {
     try {
       this.setState({ deletingItemWithID: id });
       const data = await StepRequest(`notifications/${id}`, "DELETE");
-      console.warn("data", data);
+      console.log("delete notification response", data);
       this.refreshNotifications();
     } catch (error) {
       Alert.alert(error.message);
@@ -306,17 +305,15 @@ class NotificationScreen extends Component {
               keyExtractor={(item, index) => index.toString()}
               renderItem={({ item, index }) => {
                 const { type, moreData, data } = item;
-                console.warn("item", item);
                 const onPresses = {
                   NewRequestEmployee: () => navigation.navigate("NewTasks"),
                   AcceptOfferEmployee: () => {
-                    navigation.navigate("TaskDetails", { id: item.data }),
-                      console.warn("item", item);
-                  },
+                    navigation.navigate("TaskDetails", { id: item.data })},
                   NewMessage: () =>
                     navigation.navigate("Chat", {
                       receiver_id: moreData.second.id,
-                      avatar: moreData.second.avatar
+                      avatar: moreData.second.avatar,
+                      task_id: item.request_id
                     }),
                   PaymentOnlineLink: () => navigation.navigate("PaymentWebview", { uri: data }),
                   NewOfferClient: async () => {
@@ -334,7 +331,6 @@ class NotificationScreen extends Component {
                     // await this.refreshNotifications();
                   },
                   ReviewOrder: async () => {
-                    // console.warn("item", item);
                     this.setState({
                       modalVisible: true,
                       selectedItem: item,
@@ -344,7 +340,7 @@ class NotificationScreen extends Component {
                 };
                 return (
                   <NotificationCard
-                    loading={confirmLoading === item.moreData.id}
+                    loading={(item.moreData == null || item.moreData.id == null) ? false : confirmLoading === item.moreData.id}
                     onPress={onPresses[type]}
                     onPressDelete={() => this.deleteNotification(item)}
                     isDeleting={deletingItemWithID == item.id}

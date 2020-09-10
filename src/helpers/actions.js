@@ -20,6 +20,7 @@ export const actions = {
   },
   async refreshCategories() {
     const categories = await StepRequest("categories");
+    
     xSetState({ categories });
   },
   async refreshBanks() {
@@ -51,7 +52,7 @@ export const actions = {
 
   async updateUser(updatedData) {
     const data = await StepRequest("update-profile", "POST", updatedData);
-    console.warn("updateUser", data);
+    console.log("updateUser", data);
     return data;
   },
 
@@ -59,14 +60,14 @@ export const actions = {
     console.warn("registerDeviceToken");
     try {
       const deviceInfo = await StepOneSignal.getDeviceInfo();
-      console.warn("deviceInfo", deviceInfo);
+      console.log("deviceInfo;;;;;", deviceInfo.userId);
       const response = await StepRequest("register-device", "PATCH", {
         token: deviceInfo.userId
       });
 
-      console.warn("registerDeviceResponse", response);
+      console.log("registerDeviceResponse", response);
     } catch (error) {
-      console.warn("registerDeviceError", error.message);
+      console.log("registerDeviceError", error.message);
     }
   }
 };

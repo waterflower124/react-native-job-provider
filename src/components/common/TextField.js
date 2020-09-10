@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: colors.white,
     paddingHorizontal: hScale(11.6),
-    elevation: 10
+    elevation: 2
   },
   input: {
     alignItems: "center",
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.arial
   },
   borderSeparator: {
-    width: hScale(359.5),
+    width: hScale(332.7),
     height: vScale(1.1),
     backgroundColor: colors.inputBorder
   }

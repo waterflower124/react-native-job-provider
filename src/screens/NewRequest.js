@@ -11,7 +11,7 @@ import {
   KeyboardAvoidingView,
   Alert
 } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import DateTimePicker from "react-native-modal-datetime-picker";
 import { fScale, hScale, sWidth, vScale } from "step-scale";
 import { icons, fonts } from "../assets";
@@ -60,7 +60,7 @@ export class NewRequest extends Component {
     try {
       const paymentMethods = await StepRequest("payment-method");
       this.setState({ paymentMethods, screenLoading: false });
-      console.warn("paymentMethods", paymentMethods);
+      console.log("paymentMethods", paymentMethods);
     } catch (error) {
       Alert.alert(error.message);
       this.props.navigation.goBack();
@@ -104,18 +104,22 @@ export class NewRequest extends Component {
       category_id,
       image: imageToUpload,
       lat: location.latitude,
-      long: location.longitude,
+      lng: location.longitude,
       payment_method: selectedPaymentMethods.id
     };
+
+    console.log("requestdata in request::::", JSON.stringify(requestData));
     try {
       const data = await StepRequest("client-requests", "POST", requestData);
-      console.warn("data in request", data);
+      
       this.setState({ loading: false });
       Alert.alert(data);
       await this.props.navigation.goBack();
     } catch (error) {
       this.setState({ loading: false });
+      console.log("client request error:   " + error.message)
       Alert.alert(error.message);
+      
     }
   }
 
@@ -189,6 +193,7 @@ export class NewRequest extends Component {
     return (
       <Container loading={screenLoading}>
         <MapView
+          provider = {PROVIDER_GOOGLE}
           ref={ref => (this.myMapView = ref)}
           showsUserLocation
           showsMyLocationButton

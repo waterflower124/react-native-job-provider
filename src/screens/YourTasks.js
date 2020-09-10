@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { FlatList, StyleSheet, Text, View, alert } from "react-native";
+import { FlatList, StyleSheet, Text, View, Alert } from "react-native";
 import { fScale, hScale, vScale } from "step-scale";
 import {
   Container,
@@ -96,7 +96,8 @@ export class YourTasks extends Component {
                   onPressChat={() =>
                     navigation.navigate("Chat", {
                       receiver_id: client.id,
-                      avatar: client.avatar
+                      avatar: client.avatar,
+                      task_id: id
                     })
                   }
                   isTask

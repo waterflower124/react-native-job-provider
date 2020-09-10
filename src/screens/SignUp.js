@@ -5,18 +5,28 @@ import {
   TouchableOpacity,
   View,
   Image,
-  KeyboardAvoidingView
+  KeyboardAvoidingView,
+  Modal,
+  I18nManager,
+  Alert,
+  AsyncStorage,
+  ActivityIndicator,
+  Platform
 } from "react-native";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { isEmpty, isEmail } from "step-validators";
-import { fScale, hScale, vScale } from "step-scale";
+import { fScale, hScale, sWidth, vScale } from "step-scale";
 import { icons, fonts } from "../assets";
 import { BackButton, Button, Container, TextField } from "../components";
 import { colors } from "../constants";
 import { strings } from "../strings";
 import { ScrollView } from "react-native-gesture-handler";
-import { ImagePicker, convertNumbers2English } from "../helpers";
+import { ImagePicker, getUserLocation, convertNumbers2English, GoogleMapiAPIKey } from "../helpers";
+import { ModalButton } from "../components/ModalButton";
 
-export class SignUp extends Component {
+import { connect } from "step-react-redux";
+
+export class SignUpScreen extends Component {
   static navigationOptions = ({ navigation }) => ({
     headerLeft: <BackButton onPress={() => navigation.goBack()} />
   });
@@ -24,35 +34,66 @@ export class SignUp extends Component {
     validateLoading: false,
     error: "",
     mobile: "",
-    name: "",
+    first_name: "",
+    last_name: "",
     email: "",
     image: null,
-    avatar: null
+    avatar: null,
+    selectedCity: {},
+    chooseCity: false,
+    
+    cityModalVisible: false,
+    submittedCity: "",
+
+    modalVisible: false,
+    location: "",
+    temp_latitude: 0.0,
+    temp_longitude: 0.0,
+    selected_city: "",
+
+    screenLoading: false
+    
   };
   validateInputs(
     isEmptyPhone,
-    isEmptyName,
+    isEmptyFirstName,
+    isEmptyLastName,
     isEmptyMail,
-    NameError,
+    firstNameError,
+    lastNameError,
     phoneError,
     MailError
   ) {
-    const { avatar, name, email, mobile } = this.state;
+    const { avatar, first_name, last_name, email, mobile, submittedCity, location, selected_city, temp_latitude, temp_longitude } = this.state;
     let error = "";
     if ((isEmptyPhone, phoneError)) {
       error = "phone";
-    } else if ((isEmptyName, NameError)) {
-      error = "name";
+    } else if ((isEmptyFirstName, firstNameError)) {
+      error = "firstname";
+    } else if ((isEmptyLastName, lastNameError)) {
+      error = "lastname";
     } else if ((isEmptyMail, MailError)) {
       error = "email";
+    } else if (location == "") {
+        error = "location"
     }
+    // else if (submittedCity == "") {
+    //   this.setState({ chooseCity: true });
+    //   error = "city";
+    // } 
+    
     if (error == "") {
       this.props.navigation.navigate("VerifyPhone", {
         userData: {
           avatar,
-          name,
+          first_name,
+          last_name,
           email,
-          mobile
+          mobile,
+          location,
+          selected_city,
+          temp_latitude,
+          temp_longitude
         }
       });
     } else {
@@ -70,6 +111,57 @@ export class SignUp extends Component {
       image: imageSource,
       avatar: imageObject
     });
+  }
+
+  getCurrentAddress = async() => {
+      this.setState({
+          screenLoading: true
+      })
+    var parameter = "";
+    let languageCode = await AsyncStorage.getItem('languageCode')
+    if (languageCode == "en") {
+      parameter = "latlng=" + this.state.temp_latitude + "," + this.state.temp_longitude + "&key=" + GoogleMapiAPIKey;
+    } else {
+      parameter = "latlng=" + this.state.temp_latitude + "," + this.state.temp_longitude + "&language=ar&key=" + GoogleMapiAPIKey;
+    }
+
+    console.log(parameter)
+    await fetch("https://maps.googleapis.com/maps/api/geocode/json?" + parameter, {
+        method: "GET",
+    })
+    .then(response => {
+        return response.json();
+    })
+    .then(responseData => {
+        console.log(JSON.stringify(responseData));
+        if(responseData.status != "OK") {
+            Alert.alert("Warning!", "Error occurred in getting address. Please try again.")
+        } else {
+            if(responseData.results.length > 0) {
+                this.setState({
+                    location: responseData.results[0].formatted_address,
+                })
+                for(i = 0; i < responseData.results[0].address_components.length; i ++) {
+                    for(j = 0; j < responseData.results[0].address_components[i].types.length; j ++) {
+                        if(responseData.results[0].address_components[i].types[j] == "locality") {
+                            this.setState({
+                                selected_city: responseData.results[0].address_components[i].short_name
+                            })
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        this.setState({ modalVisible: false })
+    })
+    .catch(error => {
+        console.log(error)
+    });
+
+    this.setState({
+        screenLoading: false
+    })
   }
 
   render() {
@@ -94,28 +186,134 @@ export class SignUp extends Component {
       avatarStyle,
       buttonStyle,
       errorContainer,
-      errorMessageStyle
+      errorMessageStyle,
+      backButtonCustom,
+      mapButtonStyle,
+      linearStyle,
+      errorContainerCustom,
+      titleStyle,
+      locationButton,
+      textStyle,
+      locationContainer,
+      borderSeparator,
+      locStyle
     } = styles;
+
     const { navigation } = this.props;
-    const { validateLoading, error, mobile, name, email, image } = this.state;
+    const { cities } = this.props;
+
+    const { 
+      validateLoading, 
+      error, 
+      mobile, 
+      first_name, 
+      last_name, 
+      email, 
+      image, 
+      modalVisible, 
+      submittedCity, 
+      chooseCity, 
+      cityModalVisible, 
+      selectedCity,
+      location,
+      selected_city
+    } = this.state;
     const isEmptyPhone = mobile.length == 0;
-    const isEmptyName = name.length == 0;
+    const isEmptyFirstName = first_name.length == 0;
+    const isEmptyLastName = last_name.length == 0;
     const isEmptyMail = isEmpty(email);
     const isPhoneError = error === "phone";
-    const isNameError = error === "name";
+    const isFirstNameError = error === "firstname";
+    const isLastNameError = error === "lastname";
     const isMailError = error === "email";
     const isAvatarError = error == "avatar";
     const phoneError =
       isNaN(mobile) || mobile.length != 10 || !mobile.startsWith(0);
     const showPhoneError = mobile.length > 0 || isPhoneError;
-    const NameError = name.length < 3;
+    const firstNameError = first_name.length < 3;
+    const lastNameError = last_name.length < 3;
     const MailError = !isEmail(email);
-    const showNameErrorStatus = name.length > 0 || isNameError;
+    const showfirstNameErrorStatus = first_name.length > 0 || isFirstNameError;
+    const showlastNameErrorStatus = last_name.length > 0 || isLastNameError;
     const showMailErrorStatus = email.length > 0 || isMailError;
+    const notSelectedCity = submittedCity == "";
+    const isLocationError = error == "location";
+    const { isRTL } = I18nManager;
     return (
       <Container transparentImage style={container}>
+        <Modal animationType="fade" transparent={false} visible={modalVisible}>
+          <MapView
+            provider = {PROVIDER_GOOGLE}
+            ref={ref => (this.myMapView = ref)}
+            showsUserLocation
+            showsMyLocationButton
+            style={{ flex: 1, width: sWidth }}
+            initialRegion={{
+              longitude: 45,
+              latitude: 25,
+              latitudeDelta: 20,
+              longitudeDelta: 20
+            }}
+            onMapReady={() => {
+              
+              getUserLocation(
+                
+                position => {
+                  console.log("444444444");
+                  const { latitude, longitude } = position.coords;
+                  
+                  this.myMapView.animateToRegion({
+                    latitude,
+                    longitude,
+                    latitudeDelta: 0.05,
+                    longitudeDelta: 0.05
+                  });
+                  // todo: GeoCoding coords
+                  this.setState({
+                    // location: { latitude, longitude },
+                    error: ""
+                  });
+                },
+                error => { console.log("error") }
+              );
+            }}
+            onRegionChangeComplete={region => {
+              const { latitude, longitude } = region;
+              // this.setState({ location: { latitude, longitude } });
+              this.setState({
+                temp_latitude: latitude,
+                temp_longitude: longitude
+              })
+            }}
+          >
+            <Marker
+              pinColor={colors.second}
+              coordinate={{latitude: this.state.temp_latitude, longitude: this.state.temp_longitude} || { longitude: 45, latitude: 25 }}
+            />
+          </MapView>
+          <BackButton
+            onPress={() => this.setState({ modalVisible: false })}
+            customContainer={backButtonCustom}
+          />
+          <Button
+            title={strings.continue}
+            style={mapButtonStyle}
+            linearCustomStyle={linearStyle}
+            errorContainerCustom={errorContainerCustom}
+            titleStyle={titleStyle}
+            onPress={() => {
+              this.getCurrentAddress();
+              
+            }}
+          />
+        </Modal>
         <ScrollView showsVerticalScrollIndicator={false}>
-          <KeyboardAvoidingView behavior={"position"}>
+          <KeyboardAvoidingView 
+            style = {{flex: 1}}
+            behavior={(Platform.OS === 'ios') ? "padding" : null}
+            keyboardVerticalOffset={100}
+            enabled
+          >
             <Text style={welcomeBackStyle}>{strings.welcome}</Text>
             <Text style={signinToStyle}>{strings.signUpToContinue}</Text>
             <View style={uploadImageContainer}>
@@ -160,18 +358,32 @@ export class SignUp extends Component {
               customMainContainer={containerStyle}
               inputStyle={inputStyle}
               customTextStyle={{ color: colors.mainText }}
+              keyboardType = {'phone-pad'}
             />
             <TextField
-              onChangeText={name => this.setState({ name })}
-              value={name}
-              label={strings.yourname}
+              onChangeText={first_name => this.setState({ first_name })}
+              value={first_name}
+              label={strings.firstname}
               authInputs
               rightIcon={icons.userIcon}
               rightIconStyle={passwordIconStyle}
               customMainContainer={containerStyle}
               inputStyle={[inputStyle, { marginStart: 0 }]}
               errorMessage={
-                NameError && showNameErrorStatus && strings.invalidName
+                firstNameError && showfirstNameErrorStatus && strings.invalidName
+              }
+            />
+            <TextField
+              onChangeText={last_name => this.setState({ last_name })}
+              value={last_name}
+              label={strings.lastname}
+              authInputs
+              rightIcon={icons.userIcon}
+              rightIconStyle={passwordIconStyle}
+              customMainContainer={containerStyle}
+              inputStyle={[inputStyle, { marginStart: 0 }]}
+              errorMessage={
+                lastNameError && showlastNameErrorStatus && strings.invalidName
               }
             />
             <TextField
@@ -187,6 +399,67 @@ export class SignUp extends Component {
                 MailError && showMailErrorStatus && strings.invalidMail
               }
             />
+            {/* <ModalButton
+              title={strings.city}
+              data={cities}
+              errorMessage={notSelectedCity && chooseCity && strings.chooseCity}
+              onSelect={item => this.setState({ selectedCity: item })}
+              onCloseModal={() => this.setState({ cityModalVisible: false })}
+              onPressSave={() =>
+                this.setState({
+                  cityModalVisible: false,
+                  submittedCity: selectedCity
+                })
+              }
+              onPress={() => this.setState({ cityModalVisible: true })}
+              modalVisible={cityModalVisible}
+              selectedItem={selectedCity}
+              submittedItem={submittedCity}
+              containerStyle = {{marginStart: hScale(15.1),}}
+            /> */}
+            <TouchableOpacity
+              style={locationButton}
+              onPress={() => {
+                this.setState({modalVisible: true})
+              }}
+            >
+              <Text
+                style={[
+                  textStyle,
+                  { marginBottom: vScale(4.1) },
+                  isRTL && { textAlign: "left" }
+                ]}
+              >
+                {strings.location}
+              </Text>
+              <View style={locationContainer}>
+                <Text style={[textStyle, { marginBottom: vScale(10.6) }]}>
+                  {location}
+                </Text>
+                <Image
+                  source={icons.loc}
+                  resizeMode={"contain"}
+                  style={[passwordIconStyle, {tintColor: location == "" ? colors.inputInActive : colors.inputActive}]}
+                />
+              </View>
+              <View style={borderSeparator} />
+              <View style={errorContainer}>
+                <Text style={errorMessageStyle}>
+                  {isLocationError ? strings.chooseYourLocation : ""}
+                </Text>
+              </View>
+            </TouchableOpacity>
+            <TextField
+              value={selected_city}
+              label={strings.city}
+              authInputs
+              disableInput = {true}
+              rightIcon={icons.chatHead}
+              rightIconStyle={passwordIconStyle}
+              customMainContainer={containerStyle}
+              inputStyle={[inputStyle, { marginStart: 0 }]}
+              
+            />
             <Button
               loading={validateLoading}
               style={buttonStyle}
@@ -195,10 +468,12 @@ export class SignUp extends Component {
               onPress={() =>
                 this.validateInputs(
                   isEmptyPhone,
-                  isEmptyName,
+                  isEmptyFirstName,
+                  isEmptyLastName,
                   isEmptyMail,
                   phoneError,
-                  NameError,
+                  firstNameError,
+                  lastNameError,
                   MailError
                 )
               }
@@ -353,5 +628,59 @@ const styles = StyleSheet.create({
   errorContainer: {
     height: vScale(15),
     marginTop: vScale(5)
-  }
+  },
+  backButtonCustom: {
+    position: "absolute",
+    top: vScale(17),
+    left: 0
+  },
+  mapButtonStyle: {
+    width: sWidth,
+    height: vScale(56.4),
+    borderRadius: 0
+  },
+  linearStyle: {
+    borderRadius: 0
+  },
+  errorContainerCustom: {
+    height: 0,
+    marginTop: 0
+  },
+  titleStyle: {
+    textAlign: "center",
+    fontSize: fScale(19),
+    fontFamily: fonts.arial
+  },
+  locationButton: {
+    marginStart: hScale(15.1),
+    width: hScale(332.7),
+    marginBottom: vScale(17.1),
+    
+  },
+  textStyle: {
+    color: colors.mainTextColor,
+    fontSize: fScale(14),
+    fontFamily: fonts.arial
+  },
+  locationContainer: {
+    // width: hScale(343.8),
+    justifyContent: "space-between",
+    flexDirection: "row",
+    paddingHorizontal: hScale(11.6),
+  },
+  borderSeparator: {
+    width: hScale(359.5),
+    height: vScale(1.2),
+    backgroundColor: colors.inputBorder
+  },
+  locStyle: {
+    // width: hScale(17),
+    // height: hScale(17)
+    width: hScale(14.5),
+    height: vScale(16.6),
+    tintColor: colors.inputInActive,
+    marginStart: hScale(5)
+  },
 });
+
+export const SignUp = connect(SignUpScreen);

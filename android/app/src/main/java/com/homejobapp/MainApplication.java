@@ -4,7 +4,6 @@ import android.app.Application;
 
 import com.facebook.react.ReactApplication;
 import com.reactnativecommunity.geolocation.GeolocationPackage;
-import com.reactnativecommunity.webview.RNCWebViewPackage;
 import com.zmxv.RNSound.RNSoundPackage;
 import com.rnim.rn.audio.ReactNativeAudioPackage;
 import com.geektime.rnonesignalandroid.ReactNativeOneSignalPackage;
@@ -37,7 +36,6 @@ public class MainApplication extends Application implements ReactApplication {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
             new GeolocationPackage(),
-            new RNCWebViewPackage(),
             new RNSoundPackage(),
             new ReactNativeAudioPackage(),
             new ReactNativeOneSignalPackage(),

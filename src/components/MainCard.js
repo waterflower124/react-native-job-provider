@@ -34,6 +34,7 @@ export const MainCard = props => {
     showReview,
     disableTouch
   } = props;
+
   const {
     category,
     requirements,
@@ -48,6 +49,7 @@ export const MainCard = props => {
     price,
     order
   } = item;
+  
   const currentUserIsEmployee = currentUserType == "employee";
   const otherUserObject = currentUserIsEmployee ? client : employee;
   const isRTL = I18nManager;
@@ -119,7 +121,7 @@ export const MainCard = props => {
         : `${strings.offers} : ${offersCount}`
     }
   };
-  console.warn("order", order);
+  
   const isDone = status == "Done";
   const isOrder = status == "Confirmed";
   const componentStatus = isOrder ? OrderStatus : status;
@@ -304,7 +306,7 @@ export const MainCard = props => {
             ]}
             numberOfLines={1}
           >
-            {client.name}
+            {client.first_name + " " + client.last_name}
           </Text>
           <View style={statusContainer}>
             <Text

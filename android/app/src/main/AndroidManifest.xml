@@ -14,7 +14,8 @@
       android:icon="@mipmap/ic_launcher"
       android:roundIcon="@mipmap/ic_launcher_round"
       android:allowBackup="false"
-      android:theme="@style/AppTheme">
+      android:theme="@style/AppTheme"
+        android:usesCleartextTraffic="true">
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"
@@ -29,7 +30,7 @@
       <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
       <meta-data
         android:name="com.google.android.geo.API_KEY"
-        android:value="AIzaSyAiVnk_cFca9SEUiOfXMRH41gnWOM23IxE"/>
+        android:value="AIzaSyBOSF44W1Z42oyLc0yq5Z_cRA7HkBL2XnY"/>
     </application>
 
 </manifest>

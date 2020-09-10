@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
   Alert
 } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { fScale, hScale, sWidth, vScale } from "step-scale";
 import { fonts } from "../assets";
 import { BackButton, Container, MainCard } from "../components";
@@ -23,7 +23,7 @@ class TaskDetailsScreen extends Component {
     super(props);
     const id = this.props.navigation.getParam("id", null);
     this.state = {
-      data: { long: 0, lat: 0 },
+      data: { lng: 0, lat: 0 },
       screenLoading: true,
       location: null,
       id,
@@ -50,7 +50,7 @@ class TaskDetailsScreen extends Component {
     try {
       const data = await StepRequest(`employee-requests/${id}`);
       this.setState({ data, order_id: data.order.id, screenLoading: false });
-      console.warn("data", data);
+      console.log("sigle task response:", JSON.stringify(data));
     } catch (error) {
       this.setState({ screenLoading: false });
       Alert.alert(error.message);
@@ -128,18 +128,19 @@ class TaskDetailsScreen extends Component {
     return (
       <Container loading={screenLoading}>
         <MapView
+          provider = {PROVIDER_GOOGLE}
           ref={ref => (this.myMapView = ref)}
           style={{ flex: 1, width: sWidth }}
           initialRegion={{
-            longitude: data.long,
+            longitude: data.lng,
             latitude: data.lat,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05
           }}
         >
           <Marker
             pinColor={colors.second}
-            coordinate={{ longitude: data.long, latitude: data.lat }}
+            coordinate={{ longitude: data.lng, latitude: data.lat }}
           />
         </MapView>
 
@@ -181,7 +182,7 @@ class TaskDetailsScreen extends Component {
           isTask
           taskDetails
           onPressChat={() =>
-            navigation.navigate("Chat", { receiver_id: data.client.id })
+            navigation.navigate("Chat", { receiver_id: data.client.id , task_id: data.id})
           }
           containerStyle={containerStyle}
         />

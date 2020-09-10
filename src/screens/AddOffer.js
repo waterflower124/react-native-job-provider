@@ -11,7 +11,7 @@ import {
   I18nManager
 } from "react-native";
 import StarRating from "react-native-star-rating";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { StepRequest } from "step-api-client";
 import { connect } from "step-react-redux";
 import { fScale, hScale, vScale, sWidth } from "step-scale";
@@ -134,7 +134,9 @@ class AddOfferScreen extends Component {
       chatImageContainer,
       chatImageStyle
     } = styles;
+
     const item = this.props.navigation.getParam("item", null);
+
     const {
       price,
       earn,
@@ -145,6 +147,7 @@ class AddOfferScreen extends Component {
       appEarning,
       ratio
     } = this.state;
+
     const isEmptyDetails = details.length == 0;
     const isEmptyPrice = price.length == 0;
     const isDetailsError = error == "details";
@@ -171,18 +174,19 @@ class AddOfferScreen extends Component {
               resizeMode={"cover"}
             />
             <MapView
+              provider = {PROVIDER_GOOGLE}
               ref={ref => (this.myMapView = ref)}
               style={mapContainer}
               initialRegion={{
-                longitude: item.long,
+                longitude: item.lng,
                 latitude: item.lat,
-                latitudeDelta: 0.01,
-                longitudeDelta: 0.01
+                latitudeDelta: 0.05,
+                longitudeDelta: 0.05
               }}
             >
               <Marker
                 pinColor={colors.second}
-                coordinate={{ longitude: item.long, latitude: item.lat }}
+                coordinate={{ longitude: item.lng, latitude: item.lat }}
               />
             </MapView>
             <View style={chatContainer}>
@@ -215,7 +219,7 @@ class AddOfferScreen extends Component {
               <TouchableOpacity
                 style={chatButtonStyle}
                 onPress={() =>
-                  navigation.navigate("Chat", { receiver_id: item.user_id })
+                  navigation.navigate("Chat", { receiver_id: item.user_id, task_id: item.id })
                 }
               >
                 <Image

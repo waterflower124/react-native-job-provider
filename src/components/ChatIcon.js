@@ -16,8 +16,7 @@ export class ChatIconComponent extends React.PureComponent {
     try {
       const data = await StepRequest("unread-messages");
       this.setState({ haveNewMessages: data.unread });
-      console.warn("data", data);
-      console.warn("haveNewMessages", haveNewMessages);
+      
     } catch (error) {
       Alert.alert(error.message);
     }
