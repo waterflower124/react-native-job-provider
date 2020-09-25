@@ -26,6 +26,7 @@
 		141CF5922D55472F96B24334 /* JF-Flat-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 967836DCE3CE41ACA59EC17B /* JF-Flat-Regular.ttf */; };
 		146834051AC3E58100842450 /* libReact.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 146834041AC3E56700842450 /* libReact.a */; };
 		17A5F23DDB0E448385506987 /* libRNSound.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B819C0B70E6C46388B9B3F63 /* libRNSound.a */; };
+		23787056251521AB0025282F /* libRNCWebView.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 23787051251521510025282F /* libRNCWebView.a */; };
 		23A5E8BF24ED2CE600FED19F /* GoogleMapsBase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 23A5E88B24ED2CE600FED19F /* GoogleMapsBase.framework */; };
 		23A5E8C124ED2CF100FED19F /* GoogleMaps.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 23A5E8C024ED2CF100FED19F /* GoogleMaps.framework */; };
 		23A5E8C324ED2CFC00FED19F /* GoogleMapsCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 23A5E8C224ED2CFC00FED19F /* GoogleMapsCore.framework */; };
@@ -220,6 +221,13 @@
 			proxyType = 2;
 			remoteGlobalIDString = 134814201AA4EA6300B7C361;
 			remoteInfo = RNCGeolocation;
+		};
+		23787050251521510025282F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2378701E251521510025282F /* RNCWebView.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 134814201AA4EA6300B7C361;
+			remoteInfo = RNCWebView;
 		};
 		2D02E4911E0B4A5D006451C7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -469,6 +477,7 @@
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = hsapp/main.m; sourceTree = "<group>"; };
 		146833FF1AC3E56700842450 /* React.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = React.xcodeproj; path = "../node_modules/react-native/React/React.xcodeproj"; sourceTree = "<group>"; };
 		19DFE71803284C2282A41EB6 /* libRNAudio.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNAudio.a; sourceTree = "<group>"; };
+		2378701E251521510025282F /* RNCWebView.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RNCWebView.xcodeproj; path = "../node_modules/react-native-webview/ios/RNCWebView.xcodeproj"; sourceTree = "<group>"; };
 		23A5E88B24ED2CE600FED19F /* GoogleMapsBase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = GoogleMapsBase.framework; sourceTree = "<group>"; };
 		23A5E8C024ED2CF100FED19F /* GoogleMaps.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = GoogleMaps.framework; sourceTree = "<group>"; };
 		23A5E8C224ED2CFC00FED19F /* GoogleMapsCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = GoogleMapsCore.framework; sourceTree = "<group>"; };
@@ -526,6 +535,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				23787056251521AB0025282F /* libRNCWebView.a in Frameworks */,
 				23A5E8E324ED30BC00FED19F /* UIKit.framework in Frameworks */,
 				23A5E8E124ED30B200FED19F /* SystemConfiguration.framework in Frameworks */,
 				23A5E8DF24ED30A700FED19F /* QuartzCore.framework in Frameworks */,
@@ -793,6 +803,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		2378701F251521510025282F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				23787051251521510025282F /* libRNCWebView.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -843,6 +861,7 @@
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				2378701E251521510025282F /* RNCWebView.xcodeproj */,
 				5E91572D1DD0AC6500FF2AA8 /* RCTAnimation.xcodeproj */,
 				146833FF1AC3E56700842450 /* React.xcodeproj */,
 				00C302A71ABCB8CE00DB3ED1 /* RCTActionSheet.xcodeproj */,
@@ -1138,6 +1157,10 @@
 					ProjectRef = 97A995B9B3B542F4A9D0FCFE /* RNCGeolocation.xcodeproj */;
 				},
 				{
+					ProductGroup = 2378701F251521510025282F /* Products */;
+					ProjectRef = 2378701E251521510025282F /* RNCWebView.xcodeproj */;
+				},
+				{
 					ProductGroup = 189D455722B29DBA0013BFCD /* Products */;
 					ProjectRef = 55284C0D91B9470583425108 /* RNGestureHandler.xcodeproj */;
 				},
@@ -1305,6 +1328,13 @@
 			fileType = archive.ar;
 			path = libRNCGeolocation.a;
 			remoteRef = 18BEEE8824DB03C9004CDA7C /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		23787051251521510025282F /* libRNCWebView.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRNCWebView.a;
+			remoteRef = 23787050251521510025282F /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		2D16E6721FA4F8DC00B85C8A /* libRCTBlob-tvOS.a */ = {
@@ -1629,7 +1659,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_ENTITLEMENTS = hsapp/hsapp.entitlements;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = 4T9P5824G2;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -1650,11 +1680,13 @@
 					"$(SRCROOT)/../node_modules/react-native-maps/lib/ios/**",
 					"$(SRCROOT)/../node_modules/@react-native-community/geolocation/ios",
 					"$(SRCROOT)/**",
+					"$(SRCROOT)/../node_modules/react-native-webview/ios/**",
 				);
 				INFOPLIST_FILE = hsapp/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.2.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -1672,7 +1704,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_ENTITLEMENTS = hsapp/hsapp.entitlements;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 4T9P5824G2;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1692,11 +1724,13 @@
 					"$(SRCROOT)/../node_modules/react-native-maps/lib/ios/**",
 					"$(SRCROOT)/../node_modules/@react-native-community/geolocation/ios",
 					"$(SRCROOT)/**",
+					"$(SRCROOT)/../node_modules/react-native-webview/ios/**",
 				);
 				INFOPLIST_FILE = hsapp/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.2.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",

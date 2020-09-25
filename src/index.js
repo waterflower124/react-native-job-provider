@@ -10,7 +10,7 @@ import StepOneSignal from "step-onesignal";
 class App extends Component {
   constructor(props) {
     super(props);
-    Step_API_Client.baseURL = "http://172.105.38.120/api/";
+    Step_API_Client.baseURL = "https://homejob.com.sa/api/";
     Step_API_Client.defaultHeaders = {
       Accept: "application/json",
       "Content-Type": "application/json"

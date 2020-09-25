@@ -46,7 +46,7 @@ class IntroScreen extends Component {
         try {
           await actions.updateUser({ lang: langCode });
         } catch (error) {
-          console.warn("update profile error ", error.message)
+          console.log("update profile error ", error.message)
         }
 
         const isEmployee = data.type == "employee";

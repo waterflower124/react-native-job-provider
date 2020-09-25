@@ -125,7 +125,7 @@ class SideMenuDrawer extends Component {
                       numberOfLines={1}
                       style={[textStyle, isRTL && { textAlign: "left" }]}
                     >
-                      {user.data.name}
+                      {user.data.first_name + " " + user.data.last_name}
                     </Text>
                     <Text
                       style={[

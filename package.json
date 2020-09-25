@@ -25,6 +25,7 @@
     "react-native-restart": "0.0.12",
     "react-native-sound": "^0.11.0",
     "react-native-star-rating": "^1.1.0",
+    "react-native-webview": "^10.9.0",
     "react-navigation": "^3.11.0",
     "step-api-client": "^0.1.3",
     "step-crash-catcher": "^0.0.3",

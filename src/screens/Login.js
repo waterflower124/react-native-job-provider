@@ -46,11 +46,11 @@ class LoginScreen extends Component {
     this.setState({ validateLoading: true });
     const { navigation } = this.props;
     const lang = await languageSwitcher.getCurrentLanguageCode();
-    console.warn("lang", lang);
+    console.log("lang", lang);
     const loginData = { mobile, password, lang };
     try {
       const data = await StepRequest("login", "POST", loginData);
-      console.warn("data", data);
+      console.log("data::::::::::::::", data);
       actions.setUserData({
         data: data.user,
         userToken: data.token
@@ -61,7 +61,7 @@ class LoginScreen extends Component {
       navigation.navigate(screenToNavigate);
     } catch (error) {
       this.setState({ validateLoading: false });
-      console.warn(error.message);
+      console.log(error.message);
       Alert.alert(error.message);
     }
   }

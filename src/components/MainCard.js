@@ -164,7 +164,7 @@ export const MainCard = props => {
           ]}
         >
           <Image
-            source={{ uri: category.image }}
+            source={category != null ? { uri: category.image } : {}}
             style={imageStyle}
             resizeMode={"contain"}
           />

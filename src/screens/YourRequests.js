@@ -122,16 +122,15 @@ export class YourRequests extends Component {
                     if (item.OrderStatus === "InProgress") {
                       if(item.offers.length == 0) {
 
-                      } else if(item.offers.length == 1) {
-                        navigation.navigate("Chat", {
-                          receiver_id: item.assignedEmployee.id,
-                          avatar: item.assignedEmployee.avatar,
-                          task_id: item.offers[0].request_id
-                        });
-                      } else if(item.offers.length > 1) {
-                        navigation.navigate("Messages");
-                      }
-                      
+                      } else {
+                        if(item.assignedEmployee != null) {
+                          navigation.navigate("Chat", {
+                            receiver_id: item.assignedEmployee.id,
+                            avatar: item.assignedEmployee.avatar,
+                            task_id: item.id
+                          });
+                        }
+                      } 
                     } else {
                       navigation.navigate("RequestDetails", { item })
                     }

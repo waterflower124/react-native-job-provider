@@ -157,6 +157,7 @@ export default {
   currency: "ر.س",
   reject: "رفض",
   offerRejected: "العرض مرفوض",
+  offerAccepted: "عرض قبول",
   whatsapp: "واتس آب",
   twitter: "تويتر",
   paymentSuccess: "نجحت عملية الدفع",

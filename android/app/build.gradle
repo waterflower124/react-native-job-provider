@@ -113,11 +113,11 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.homejobapp"
+        applicationId "com.homejobapp.sa"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 4
-        versionName "1.0"
+        versionCode 2
+        versionName "1.2.1"
         multiDexEnabled true
     }
     splits {
@@ -150,6 +150,7 @@ android {
 }
 
 dependencies {
+    implementation project(':react-native-webview')
     implementation project(':@react-native-community_geolocation')
     implementation project(':react-native-sound')
     implementation project(':react-native-audio')

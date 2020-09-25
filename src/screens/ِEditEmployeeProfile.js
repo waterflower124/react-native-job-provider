@@ -45,11 +45,13 @@ class EditEmployeeProfileScreen extends Component {
       }
     });
     const myCategoriesIDs = user.data.category.map(e => e.id);
+    console.log("categories:::" + JSON.stringify(categories))
     categories.forEach(category => {
       if (myCategoriesIDs.includes(category.id)) {
         selectedService.push(category);
       }
     });
+    
     banks.forEach(bank => {
       if (bank.id == user.data.bank_id) {
         selectedBank = { name: bank.name, id: bank.id };

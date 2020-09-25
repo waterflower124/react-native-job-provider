@@ -22,7 +22,8 @@ export class RequestDetails extends Component {
       screenLoading: true,
       loading: false,
       rejectLoading: false,
-      refreshLoading: false
+      refreshLoading: false,
+      bid_accepted: false,
     };
   }
   static navigationOptions = ({ navigation }) => ({
@@ -51,6 +52,7 @@ export class RequestDetails extends Component {
     try {
       const acceptBody = { offer_id: id, request_id: item.id };
       const data = await StepRequest("client-offers", "POST", acceptBody);
+      this.refreshData()
       await this.setState({ loading: false });
       console.warn("data", data);
       await this.props.navigation.navigate("Chat", {
@@ -88,8 +90,17 @@ export class RequestDetails extends Component {
     const { id } = this.state.item;
     try {
       const data = await StepRequest(`client-requests/${id}`);
-      console.warn("data", data);
-      this.setState({ item: data, refreshLoading: false, screenLoading: false });
+      console.log("request data: ", data);
+      var bid_accepted = false;
+      if(data.offers != null && data.offers.length > 0) {
+        for(i = 0; i < data.offers.length; i ++) {
+          if(data.offers[i].status == 1) {
+            bid_accepted = true;
+            break;
+          }
+        }
+      }
+      this.setState({ item: data, refreshLoading: false, screenLoading: false, bid_accepted: bid_accepted });
     } catch (error) {
       Alert.alert(error.message);
       this.props.navigation.goBack()
@@ -108,7 +119,8 @@ export class RequestDetails extends Component {
       loading,
       rejectLoading,
       screenLoading,
-      refreshLoading
+      refreshLoading,
+      bid_accepted
     } = this.state;
     const data = item.offers;
     const noOffers = data.length == 0;
@@ -148,6 +160,7 @@ export class RequestDetails extends Component {
                 loading={selectedItem == item && loading}
                 rejectLoading={selectedItem == item && rejectLoading}
                 item={item}
+                bid_accepted = {bid_accepted}
                 onRejectPress={() => {
                   this.setState({ selectedItem: item }, () =>
                     this.rejectOffer(item.id)

@@ -212,6 +212,7 @@ export default {
     currency: "SAR",
     reject: "reject",
     offerRejected: "Offer Rejected",
+    offerAccepted: "Offer Accepted",
     whatsapp: "WhatsApp",
     twitter: "Twitter",
     paymentSuccess: "Payment Succeeded",

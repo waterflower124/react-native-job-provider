@@ -19,7 +19,7 @@ export const MessageCard = (props) => {
   const myUnseenCount = item.new - unseen_second_count
   const haveNewMessage = myUnseenCount > 0
   const { type, text } = last_message;
-  const { name, avatar } = second;
+  const { first_name, last_name, avatar } = second;
   const isVoiceMessage = type === 2;
   const isPhotoImage = type === 3;
   const {
@@ -42,7 +42,7 @@ export const MessageCard = (props) => {
           style={[nameStyle, , isRTL && { textAlign: "left" }]}
           numberOfLines={1}
         >
-          {name}
+          {first_name + " " + last_name}
         </Text>
         <Text
           numberOfLines={2}

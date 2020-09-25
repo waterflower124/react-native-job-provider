@@ -15,7 +15,7 @@ import { strings } from "../strings";
 import { fonts, icons } from "../assets";
 
 export const OfferCard = props => {
-  const { item, onPress, onRejectPress, loading, rejectLoading } = props;
+  const { item, onPress, onRejectPress, loading, rejectLoading, bid_accepted } = props;
   const { note, price, employee, status } = item;
   const {
     container,
@@ -29,6 +29,7 @@ export const OfferCard = props => {
   const { isRTL } = I18nManager;
   const disabled = loading || rejectLoading;
   const isRejected = status == 2;
+  const isAccepted = bid_accepted && status == 1;
   return (
     <View style={container}>
       <View style={nameImageContainer}>
@@ -67,10 +68,16 @@ export const OfferCard = props => {
           {note}
         </Text>
       </View>
-      {isRejected ? (
+      {isAccepted ? (
+        <Text style={[textStyle, { color: colors.red }]}>
+          {strings.offerAccepted}
+        </Text>
+      ) : isRejected ? (
         <Text style={[textStyle, { color: colors.red }]}>
           {strings.offerRejected}
         </Text>
+      ) : (bid_accepted && status != 1) ? (
+        <View/>
       ) : (
         <View style={{ flexDirection: "row" }}>
           <TouchableOpacity
