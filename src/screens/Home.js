@@ -8,23 +8,48 @@ import {
   DrawerIcon,
   ServiceCard,
   EmptyScreen,
-  HeaderLogo
+  HeaderLogo,
+  BackButton
 } from "../components";
 import { colors } from "../constants";
 import { strings } from "../strings";
 import { connect } from "step-react-redux";
 
 class HomeScreen extends Component {
-  static navigationOptions = ({ navigation }) => ({
-    headerLeft: <HeaderLogo />,
-    headerRight: (
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <ChatIcon onPress={() => navigation.navigate("Messages")} />
-        <DrawerIcon onPress={() => navigation.openDrawer()} />
-      </View>
-    )
-  });
-  componentDidMount() {}
+
+  constructor(props) {
+    super(props);
+
+    this.props.navigation.setOptions({
+      headerLeft: () => <HeaderLogo/>,
+      headerRight: () =>
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: 'center'}}>
+          <ChatIcon onPress={() => this.props.navigation.navigate("Messages")} />
+          <DrawerIcon onPress={() => this.props.navigation.openDrawer()} />
+        </View>
+    })
+    
+  }
+
+  // static navigationOptions = ( navigation ) => {
+      
+  //   headerLeft: (<HeaderLogo />)
+  //   headerRight: (
+  //     <View style={{ flexDirection: "row", alignItems: "center" }}>
+  //       <ChatIcon onPress={() => navigation.navigate("Messages")} />
+  //       <DrawerIcon onPress={() => navigation.openDrawer()} />
+  //     </View>
+  //   )
+  // }
+
+  UNSAFE_componentWillMount() {
+
+  }
+  
+  componentDidMount() {
+
+  }
+  
   render() {
     const { textStyle, secTitleStyle, container, emptyImageStyle } = styles;
     const { navigation, categories } = this.props;

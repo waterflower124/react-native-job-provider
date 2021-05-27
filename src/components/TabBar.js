@@ -11,7 +11,7 @@ import { icons, fonts } from "../assets";
 import { colors } from "../constants";
 import { strings } from "../strings";
 import { hScale, vScale, fScale, sWidth } from "step-scale";
-import { SafeAreaView } from "react-navigation";
+import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { connect } from "step-react-redux";
 
 class TabBarComponent extends Component {
@@ -24,9 +24,15 @@ class TabBarComponent extends Component {
       buttonContainer,
       contentContainerStyle
     } = styles;
-    const { navigation, user, onTabPress } = this.props;
+    const { navigation, user, descriptors, state } = this.props;
+
+    const focusedOptios = descriptors[state.routes[state.index].key].options;
+    if(focusedOptios.tabBarVisible === false) {
+      return null;
+    }
+    
     return (
-      <SafeAreaView style={mainContainer}>
+      <SafeAreaView style={mainContainer} edges = {['right', 'bottom', 'left']} mode = "margin">
         <View style={background} />
         <FlatList
           data={tabs}
@@ -36,23 +42,15 @@ class TabBarComponent extends Component {
           keyExtractor={(item, index) => index.toString()}
           scrollEnabled={false}
           renderItem={({ item, index }) => {
-            const isActive = navigation.state.index == index;
+            const isActive = state.index == index;
             const { icon, screen, name, iconStyle } = item;
-            const clientScreens = ["ServicesTab", "RequestTab", "MyProfileTab"];
-            const employeeScreens = ["ClientsTab", "TasksTab", "ChatTab"];
-            if (
-              (clientScreens.includes(screen) &&
-                user.data.type == "employee") ||
-              (employeeScreens.includes(screen) && user.data.type == "client")
-            ) {
-              return;
-            }
-
+            
             return (
               <TouchableOpacity
                 activeOpacity={1}
                 onPress={() => {
-                  onTabPress({ route: navigation.state.routes[index] });
+                  navigation.navigate(state.routes[index])
+                  
                 }}
                 activeOpacity={1}
                 style={buttonContainer}
@@ -84,14 +82,13 @@ const styles = StyleSheet.create({
     width: sWidth,
     height: hScale(82.6),
     position: "absolute",
-    bottom: 0
+    bottom: 0,
   },
   background: {
     width: sWidth,
     height: vScale(61),
     position: "absolute",
-    bottom: 0,
-    backgroundColor: colors.white
+    bottom: 0
   },
   buttonStyle: {
     width: hScale(42.7),
@@ -121,31 +118,23 @@ const styles = StyleSheet.create({
     height: vScale(60),
     justifyContent: "center",
     alignItems: "center",
-    marginHorizontal: hScale(12)
+    marginHorizontal: hScale(12),
   },
   contentContainerStyle: {
     width: sWidth,
-    justifyContent: "center"
+    justifyContent: "center",
   }
 });
 
 const tabs = [
-  {
-    screen: "ServicesTab",
-    name: () => strings.Services,
-    icon: icons.service,
-    iconStyle: {
-      width: hScale(14.7),
-      height: hScale(14.7)
-    }
-  },
   {
     screen: "ClientsTab",
     name: () => strings.clients,
     icon: icons.clientdrawer,
     iconStyle: {
       width: hScale(12),
-      height: vScale(13.5)
+      height: vScale(13.5),
+      tintColor: colors.tab_icon
     }
   },
   {
@@ -154,7 +143,8 @@ const tabs = [
     icon: icons.service,
     iconStyle: {
       width: hScale(15.1),
-      height: hScale(15.1)
+      height: hScale(15.1),
+      tintColor: colors.tab_icon
     }
   },
   {
@@ -163,26 +153,8 @@ const tabs = [
     icon: icons.chatTabIcon,
     iconStyle: {
       width: hScale(15.6),
-      height: hScale(15.6)
-    }
-  },
-  {
-    screen: "RequestTab",
-    name: () => strings.requests,
-    icon: icons.clientdrawer,
-    iconStyle: {
-      width: hScale(11.7),
-      height: vScale(13.2)
-    }
-  },
-
-  {
-    screen: "MyProfileTab",
-    name: () => strings.myprofile,
-    icon: icons.myprofile,
-    iconStyle: {
-      width: hScale(12.2),
-      height: hScale(12.2)
+      height: hScale(15.6),
+      tintColor: colors.tab_icon
     }
   },
   {
@@ -191,7 +163,8 @@ const tabs = [
     icon: icons.notify,
     iconStyle: {
       width: hScale(12.5),
-      height: vScale(15.6)
+      height: vScale(15.6),
+      tintColor: colors.tab_icon
     }
   }
 ];

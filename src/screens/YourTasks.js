@@ -13,10 +13,23 @@ import { colors } from "../constants";
 import { strings } from "../strings";
 import { fonts, icons } from "../assets";
 import { StepRequest } from "step-api-client";
+import AsyncStorage from '@react-native-community/async-storage';
+import { EventRegister } from 'react-native-event-listeners';
+import global from '../global/global';
 
 export class YourTasks extends Component {
   constructor(props) {
     super(props);
+
+    this.props.navigation.setOptions({
+      headerLeft: () => <HeaderLogo />,
+      headerRight: () =>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <CreditBalance  onPress={()=> this.props.navigation.navigate('Transactions')} />
+          <DrawerIcon onPress={() => this.props.navigation.openDrawer()} />
+        </View>
+    })
+
     this.props.navigation.setParams({
       refreshTasks: () => this.refreshTasks()
     });
@@ -34,8 +47,10 @@ export class YourTasks extends Component {
 
   async componentDidUpdate(prevProps) {
     const { navigation } = this.props;
-    const oldRefresh = prevProps.navigation.getParam("refresh");
-    const newRefresh = navigation.getParam("refresh");
+    // const oldRefresh = prevProps.navigation.getParam("refresh");
+    // const newRefresh = navigation.getParam("refresh");
+    const oldRefresh = prevProps.route.refresh;
+    const newRefresh = this.props.route.params.refresh;
     if (newRefresh && newRefresh != oldRefresh) {
       await navigation.setParams({
         refresh: false
@@ -43,11 +58,38 @@ export class YourTasks extends Component {
       this.refreshTasks();
     }
   }
+
   componentDidMount() {
-    this.loadData();
+    // this.loadData();
+
+    this.forcusListener = this.props.navigation.addListener('focus', () => {
+      this.refreshTasks();
+    });
+
+    this.notiListener = EventRegister.addEventListener(global.NOTI_OFFER_ACCEPT, (data) => {
+      this.refreshTasks();
+    })
+    this.notiRequestResetListener = EventRegister.addEventListener(global.NOTI_REQUEST_RESET, (data) => {
+      this.refreshTasks();
+    })
+  }
+
+  componentWillUnmount() {
+    this.forcusListener();
+    EventRegister.removeEventListener(this.notiListener);
+    EventRegister.removeEventListener(this.notiRequestResetListener);
   }
 
   async loadData() {
+    const userToken = await AsyncStorage.getItem("userToken");
+    if(userToken == null || userToken == "") {
+      this.setState({
+        screenLoading: false,
+        listLoading: false
+      });
+      return;
+    }
+
     try {
       const data = await StepRequest("my-tasks");
       this.setState({ data, screenLoading: false, listLoading: false });
@@ -89,7 +131,6 @@ export class YourTasks extends Component {
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item, index }) => {
               const { client, id } = item;
-              console.warn("item", item);
               return (
                 <MainCard
                   onPress={() => navigation.navigate("TaskDetails", { id })}

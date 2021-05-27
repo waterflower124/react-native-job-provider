@@ -14,26 +14,32 @@ import { colors } from "../constants";
 import { strings } from "../strings";
 import { StepRequest } from "step-api-client";
 import { actions, languageSwitcher } from "../helpers";
+import AsyncStorage from '@react-native-community/async-storage';
 
 export class VerifyPhone extends Component {
   constructor(props) {
     super(props);
-    const userData = this.props.navigation.getParam("userData", null);
+
+    this.props.navigation.setOptions({
+      headerLeft: () => <BackButton onPress={() => this.props.navigation.goBack()} />
+    })
+
+    const userData = this.props.route.params.userData;
     this.state = {
       ...userData,
       ms: 59000,
       code: "",
       error: "",
-      validateloading: false
+      validateloading: false,
+      resetPassword: this.props.route.params.resetPassword
     };
   }
-  static navigationOptions = ({ navigation }) => ({
-    headerLeft: <BackButton onPress={() => navigation.goBack()} />
-  });
+
   componentDidMount() {
     
     this.sendCode()
   }
+
   startTimer(){
     timeInterval = setInterval(() => {
       const { ms } = this.state;
@@ -44,6 +50,7 @@ export class VerifyPhone extends Component {
       }
     }, 1000);
   }
+
   componentWillUnmount(){
     if (typeof timeInterval != 'undefined') {
       clearInterval(timeInterval);
@@ -51,15 +58,31 @@ export class VerifyPhone extends Component {
   }
 
   async sendCode() {
-    const { mobile } = this.state
+    const { mobile, resetPassword } = this.state
     try {
-      const data = await StepRequest("otp/send", "POST", { mobile });
-      this.startTimer();
+      var data = null;
+      
+      if(resetPassword) {
+        this.setState({
+          mobile: this.props.route.params.mobile
+        })
+        data = await StepRequest("password/remind", "POST", { mobile: this.props.route.params.mobile });
+      } else {
+        // data = await StepRequest("otp/send", "POST", { mobile });
+        data = {status: 1}
+      }
+      if(data.status == 0) {
+        Alert.alert(data.message);
+        this.props.navigation.goBack();
+      } else {
+        this.startTimer();
+      }
     } catch (error) {
       Alert.alert(error.message);
-      this.props.navigation.goBack()
+      this.props.navigation.goBack();
     }
   }
+
   formatCounter() {
     const { ms } = this.state;
     let seconds = Math.floor(ms / 1000);
@@ -68,6 +91,7 @@ export class VerifyPhone extends Component {
     seconds = seconds < 1 ? "00" : seconds < 10 ? `0${seconds}` : seconds;
     return `${minutes}:${seconds}`;
   }
+
   async validateCode(isEmptyCode, codeError) {
     const { mobile, code } = this.state
     let error = "";
@@ -77,7 +101,8 @@ export class VerifyPhone extends Component {
     if (error == "") {
       try {
         this.setState({ validateloading: true });
-        const data = await StepRequest("otp/verify", "POST", { mobile, otp: code });
+        var data = await StepRequest("otp/verify", "POST", { mobile, otp: code });
+        
         this.naivgateToScreen();
       } catch (error) {
         this.setState({ validateloading: false });
@@ -90,16 +115,18 @@ export class VerifyPhone extends Component {
 
   naivgateToScreen() {
     const { navigation } = this.props;
-    const { first_name, last_name, mobile, email, isEmployee, avatar, location, selected_city, temp_latitude, temp_longitude } = this.state;
-    if (isEmployee) {
+    const { mobile, resetPassword } = this.state;
+    if(resetPassword) {
+      navigation.navigate("NewPassword", {
+        mobile,
+        otp: this.state.code
+      });
+    } else {
       this.setState({ validateloading: false });
       this.signup();
-    } else {
-      navigation.navigate("NewPassword", {
-        userData: { avatar, first_name, last_name, mobile, email, location, selected_city, temp_latitude, temp_longitude }
-      });
     }
   }
+
   async signup() {
     const { navigation } = this.props;
     this.setState({ validateloading: true });
@@ -110,6 +137,7 @@ export class VerifyPhone extends Component {
       category_id,
       bank_id,
       bank_no,
+      national_iqama_commercial,
       commercial,
       mobile,
       email,
@@ -118,7 +146,8 @@ export class VerifyPhone extends Component {
       last_name,
       avatar,
       temp_latitude,
-      temp_longitude
+      temp_longitude,
+      isEmployee
     } = this.state;
     const lang = await languageSwitcher.getCurrentLanguageCode();
     const userData = {
@@ -129,17 +158,23 @@ export class VerifyPhone extends Component {
       category_id,
       bank_id,
       bank_no,
+      national_iqama_commercial,
       commercial,
       mobile,
       password,
       first_name,
       last_name,
       avatar,
-      type: "employee",
       email,
       lang,
       address: location
     };
+
+    if(isEmployee) {
+      userData.type = "employee";
+    } else {
+      userData.type = "client";
+    }
     try {
       const data = await StepRequest("register", "POST", userData);
       actions.setUserData({
@@ -147,7 +182,12 @@ export class VerifyPhone extends Component {
         userToken: data.token
       });
       this.setState({ validateloading: false });
-      navigation.navigate("ClientsTab");
+      const user = { data: data.user, loggedIn: true };
+      AsyncStorage.setItem("user", JSON.stringify(user));
+      AsyncStorage.setItem("userToken", data.token);
+
+      // navigation.navigate("ClientsTab");
+      navigation.navigate("rootDrawerNavigator", {screen: 'Home', params: {user: data.user}});
     } catch (error) {
       this.setState({ validateloading: false });
       Alert.alert(error.message);

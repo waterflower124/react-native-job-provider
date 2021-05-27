@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { FlatList, Image, StyleSheet, Alert } from "react-native";
+import { FlatList, Image, StyleSheet, Alert, TouchableOpacity, View } from "react-native";
 import { hScale, vScale } from "step-scale";
 import {
   Container,
@@ -12,11 +12,23 @@ import { icons } from "../assets";
 import { strings } from "../strings";
 import { whiteHeaderOptions } from "../navigation/options";
 import { StepRequest } from "step-api-client";
+import { colors } from "../constants";
 
 export class RequestDetails extends Component {
   constructor(props) {
     super(props);
-    const item = this.props.navigation.getParam("item", null);
+
+    this.props.navigation.setOptions({
+      ...whiteHeaderOptions,
+      headerLeft: () =>
+        <BackButton
+          backWithTitle
+          onPress={() => this.props.navigation.goBack()}
+          title={strings.request}
+        />
+    })
+
+    const item = this.props.route.params.item;
     this.state = {
       item,
       screenLoading: true,
@@ -24,21 +36,14 @@ export class RequestDetails extends Component {
       rejectLoading: false,
       refreshLoading: false,
       bid_accepted: false,
+      showImage: false,
+      showImageUrl: "",
     };
   }
-  static navigationOptions = ({ navigation }) => ({
-    ...whiteHeaderOptions,
-    headerLeft: (
-      <BackButton
-        backWithTitle
-        onPress={() => navigation.goBack()}
-        title={strings.request}
-      />
-    )
-  });
+  
 
   componentDidMount(){
-    const shouldGetData = this.props.navigation.getParam("getData", false);
+    const shouldGetData = this.props.route.params.getData;
     if (shouldGetData){
       this.refreshData()
     } else {
@@ -126,17 +131,31 @@ export class RequestDetails extends Component {
     const noOffers = data.length == 0;
     return (
       <Container style={container} loading={screenLoading}>
+      {
+        this.state.showImage && this.state.showImageUrl != null && this.state.showImageUrl != "" &&
+        <View style = {{flex: 1, width: '100%', height: '100%', position: 'absolute', top: 0, left: 0, zIndex: 10, justifyContent: 'center', alignItems: 'center'}}
+          onStartShouldSetResponder = {() => {this.setState({showImage: false, showImageUrl: ""})}}>
+          <View style = {{width: '100%', height: '100%', backgroundColor: '#000000', opacity: 0.8, position: 'absolute', top: 0, left: 0}}></View>
+          <TouchableOpacity style = {{position: 'absolute', right: 20, top: 20, width: hScale(18), height: hScale(18), padding: hScale(3), borderRadius: hScale(12), backgroundColor: '#ffffff', zIndex: 10}}
+            onPress = {() => {this.setState({showImage: false, showImageUrl: ""})}}>
+            <Image source={icons.xClose} style={[{width: '100%', height: '100%', tintColor: colors.black }]} resizeMode="contain" />
+          </TouchableOpacity>
+          <Image style = {{width: '90%', height: '90%', resizeMode: 'contain'}} source = {{uri: this.state.showImageUrl}}/>
+        </View>
+      }
         <MainCard
           clientProfile
           item={item}
           containerStyle={{ alignSelf: "center" }}
           disableTouch
         />
-        <Image
-          source={{ uri: item.image }}
-          style={mainImageStyle}
-          resizeMode={"cover"}
-        />
+        <TouchableOpacity onPress = {() => {this.setState({showImage: true, showImageUrl: item.image})}}>
+          <Image
+            source={{ uri: item.image }}
+            style={mainImageStyle}
+            resizeMode={"cover"}
+          />
+        </TouchableOpacity>
         {noOffers ? (
           <EmptyScreen
             title={strings.noOffers}

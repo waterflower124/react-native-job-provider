@@ -7,43 +7,53 @@ import { icons } from "../assets";
 import { connect } from "step-react-redux";
 import { whiteHeaderOptions } from "../navigation/options";
 import { StepRequest } from "step-api-client";
+import AsyncStorage from '@react-native-community/async-storage';
 
 class HistoryScreen extends Component {
   constructor(props) {
     super(props);
+
     const { navigation, user } = this.props;
     navigation.setParams({
       avatar: user.data.avatar
     });
+    
+    
+    this.props.navigation.setOptions({
+      ...whiteHeaderOptions,
+      headerRight: () =>
+        <Image
+          source={user.data.avatar ? { uri: user.data.avatar } : icons.userPlaceholder}
+          resizeMode={"cover"}
+          style={styles.avatarStyle}
+        />,
+      headerLeft: () =>
+        <BackButton
+          backWithTitle
+          onPress={() => this.props.navigation.goBack()}
+          title={strings.history}
+        />
+    })
+
+    
   }
 
   state = { screenLoading: true, data: [], listLoading: false };
-  static navigationOptions = ({ navigation }) => {
-    const avatar = navigation.getParam("avatar", null);
-    return {
-      ...whiteHeaderOptions,
-      headerRight: (
-        <Image
-          source={avatar ? { uri: avatar } : icons.userPlaceholder}
-          resizeMode={"cover"}
-          style={styles.avatarStyle}
-        />
-      ),
-      headerLeft: (
-        <BackButton
-          backWithTitle
-          onPress={() => navigation.goBack()}
-          title={strings.history}
-        />
-      )
-    };
-  };
+  
 
   componentDidMount() {
     this.loadMyHistory();
   }
 
   async loadMyHistory() {
+    const userToken = await AsyncStorage.getItem("userToken");
+    if(userToken == null || userToken == "") {
+      this.setState({
+        screenLoading: false,
+        listLoading: false
+      });
+      return;
+    }
     const { navigation } = this.props;
     try {
       const data = await StepRequest("order-history");

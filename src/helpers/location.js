@@ -13,21 +13,22 @@ export const getUserLocation = async (successCallback, errorCallBack, options) =
         geolocationConroller = GeoLocation
         const alreadyGranted = PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
         let granted = alreadyGranted
+        
         if (!granted) {
             const permissionResult = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
             granted = permissionResult === PermissionsAndroid.RESULTS.GRANTED
         }
-        if (!granted) { return }
+        if (!granted) { return;  }
     } else {
         // iOS Platform
-        geolocationConroller = navigator.geolocation
+        geolocationConroller = GeoLocation
         geolocationConroller.requestAuthorization()
     }
 
-
+    console.log("android permission is granted")
     geolocationConroller.getCurrentPosition(successCallback, errorCallBack, options)
 
 }
 
-export const GoogleMapiAPIKey = "AIzaSyBOSF44W1Z42oyLc0yq5Z_cRA7HkBL2XnY";
+export const GoogleMapiAPIKey = "";
 

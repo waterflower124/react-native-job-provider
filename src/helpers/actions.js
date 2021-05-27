@@ -1,14 +1,21 @@
-import StepOneSignal from "step-onesignal";
+// import StepOneSignal from "step-onesignal";
 import { xSetState } from "step-react-redux";
 import Step_API_Client, { StepRequest } from "step-api-client";
 import { Alert } from "react-native";
+import global from '../global/global';
+import AsyncStorage from '@react-native-community/async-storage';
 
 export const actions = {
   async refreshWalletBalance() {
     try {
-      const data = await StepRequest("transactions/getBalance");
-      xSetState({ userWallet: data.balance });
-      console.warn("balance", data.balance);
+      const userToken = await AsyncStorage.getItem("userToken");
+      if(userToken == null || userToken == "") {
+        xSetState({ userWallet: 0 });
+      } else {
+        const data = await StepRequest("transactions/getBalance");
+        xSetState({ userWallet: data.balance });
+      }
+      
     } catch (error) {
       alert(error.message);
     }
@@ -31,6 +38,7 @@ export const actions = {
   async setUserData({ data, userToken }) {
     const user = { data, loggedIn: true };
     xSetState({ user });
+    
     if (userToken) {
       await this.setAccessToken(userToken);
       this.registerDeviceToken();
@@ -40,7 +48,6 @@ export const actions = {
   async setAccessToken(userToken) {
     const accessToken = "Bearer " + userToken;
     Step_API_Client.appendHeader("Authorization", accessToken);
-    console.warn("accessToken", accessToken);
     xSetState({ accessToken });
   },
 
@@ -48,6 +55,7 @@ export const actions = {
     Step_API_Client.removeHeader("Authorization");
     const user = { data: {}, loggedIn: false };
     xSetState({ user });
+    AsyncStorage.setItem("user", JSON.stringify(user));
   },
 
   async updateUser(updatedData) {
@@ -57,15 +65,12 @@ export const actions = {
   },
 
   async registerDeviceToken() {
-    console.warn("registerDeviceToken");
+    
     try {
-      const deviceInfo = await StepOneSignal.getDeviceInfo();
-      console.log("deviceInfo;;;;;", deviceInfo.userId);
       const response = await StepRequest("register-device", "PATCH", {
-        token: deviceInfo.userId
+        token: global.deviceId
       });
 
-      console.log("registerDeviceResponse", response);
     } catch (error) {
       console.log("registerDeviceError", error.message);
     }

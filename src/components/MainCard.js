@@ -6,7 +6,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   View,
-  I18nManager
+  I18nManager,
+  ScrollView
 } from "react-native";
 import StarRating from "react-native-star-rating";
 import { fScale, hScale, vScale, crScale } from "step-scale";
@@ -38,6 +39,7 @@ export const MainCard = props => {
   const {
     category,
     requirements,
+    requirements_detail,
     created_at,
     budget,
     OrderStatus,
@@ -135,18 +137,18 @@ export const MainCard = props => {
         containerStyle
       ]}
       onPress={isDone && clientProfile ? onPressRate : onPress}
-      activeOpacity={0.5}
+      activeOpacity={1}
     >
-      <TouchableOpacity onPress={onPressDelete} style={{ display: showDeleteButton ? "flex": "none" , position: "absolute", top: vScale(-5), left: hScale(-5), zIndex: 2, elevation: 2, backgroundColor: "white", ...crScale(isDeleting ?25: 15) }}>
+      {/* <TouchableOpacity onPress={onPressDelete} style={{ display: showDeleteButton ? "flex": "none" , position: "absolute", top: vScale(-5), left: hScale(-5), zIndex: 2, elevation: 2, backgroundColor: "white", ...crScale(isDeleting ?25: 15) }}>
         {isDeleting ? <ActivityIndicator color={colors.red} size={"small"} style={crScale(10)} /> :
           <Image source={icons.xClose} style={[crScale(10), { tintColor: colors.red }]} resizeMode="contain" />
         }
-      </TouchableOpacity>
+      </TouchableOpacity> */}
       <View
         style={[
           {
             flexDirection: "row",
-            height: isTask ? vScale(65.8) : vScale(77)
+            height: isTask ? vScale(65.8) : vScale(77),
           }
         ]}
       >
@@ -183,7 +185,7 @@ export const MainCard = props => {
                 resizeMode={"cover"}
               />
               <Text numberOfLines={1} style={[textStyle, clientNameStyle]}>
-                {otherUserObject.name}
+                {otherUserObject.first_name + " " + otherUserObject.last_name}
               </Text>
               {(isDone || isHistory) &&
                 (review ? (

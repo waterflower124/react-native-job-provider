@@ -8,7 +8,9 @@ import {
   I18nManager,
   TextInput,
   ScrollView,
-  Platform
+  Platform,
+  TouchableOpacity,
+  Switch
 } from "react-native";
 import { fScale, hScale, vScale, sWidth } from "step-scale";
 import StarRating from "react-native-star-rating";
@@ -29,6 +31,11 @@ import { icons, fonts } from "../assets";
 import { connect } from "step-react-redux";
 import { StepRequest } from "step-api-client";
 import { actions } from "../helpers";
+import { SwipeListView } from 'react-native-swipe-list-view';
+import AsyncStorage from '@react-native-community/async-storage';
+import { EventRegister } from 'react-native-event-listeners';
+import global from '../global/global';
+
 const { isRTL } = I18nManager;
 
 class NotificationScreen extends Component {
@@ -39,6 +46,21 @@ class NotificationScreen extends Component {
       isEmployee: user.data.type == "employee",
       refreshNotifications: () => this.refreshNotifications()
     });
+
+    var isEmployee = false;
+    if(this.props.route.params) {
+      isEmployee = this.props.route.params.isEmployee;
+    }
+    this.props.navigation.setOptions({
+      headerLeft: () => <HeaderLogo />,
+      headerRight: () => 
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <CreditBalance
+            onPress={() => this.props.navigation.navigate("Transactions")}
+          />
+          <DrawerIcon onPress={() => this.props.navigation.openDrawer()} />
+        </View>
+    })
   }
   state = {
     deletingItemWithID: null,
@@ -51,33 +73,20 @@ class NotificationScreen extends Component {
     errors: [],
     rate: 0,
     feedback: "",
-    modalVisible: false
+    modalVisible: false,
+    notification_status: true
   };
-  static navigationOptions = ({ navigation }) => {
-    const isEmployee = navigation.getParam("isEmployee", null);
-    return {
-      headerLeft: <HeaderLogo />,
-      headerRight: (
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          {isEmployee ? (
-            <CreditBalance
-              onPress={() => navigation.navigate("Transactions")}
-            />
-          ) : (
-              <ChatIcon onPress={() => navigation.navigate("Messages")} />
-            )}
-          <DrawerIcon onPress={() => navigation.openDrawer()} />
-        </View>
-      )
-    };
-  };
+
   componentDidMount() {
     this.getNotifications();
   }
+
   async componentDidUpdate(prevProps) {
     const { navigation } = this.props;
-    const oldRefresh = prevProps.navigation.getParam("refresh");
-    const newRefresh = navigation.getParam("refresh");
+    // const oldRefresh = prevProps.navigation.getParam("refresh");
+    // const newRefresh = navigation.getParam("refresh");
+    const oldRefresh = prevProps.route.refresh;
+    const newRefresh = this.props.route.params.refresh;
     if (newRefresh && newRefresh != oldRefresh) {
       navigation.setParams({ refresh: false });
       setTimeout(() => {
@@ -85,11 +94,96 @@ class NotificationScreen extends Component {
       }, 2000);
     }
   }
+
+  componentDidMount() {
+
+    this.forcusListener = this.props.navigation.addListener('focus', () => {
+      this.refreshNotifications();
+    });
+
+    this.notiOfferAcceptListener = EventRegister.addEventListener(global.NOTI_OFFER_ACCEPT, () => {
+      this.refreshNotifications();
+    })
+    this.notiOfferRejectListener = EventRegister.addEventListener(global.NOTI_OFFER_REJECT, () => {
+      this.refreshNotifications();
+    })
+    this.notiRequestCreatedListener = EventRegister.addEventListener(global.NOTI_REQUEST_CREATED, () => {
+      this.refreshNotifications();
+    })
+    this.notiTaskPaynowListener = EventRegister.addEventListener(global.NOTI_TASK_PAYNOW, () => {
+      this.refreshNotifications();
+    })
+    this.notiOthersListener = EventRegister.addEventListener(global.NOTI_AMINISTRATOR, () => {
+      this.refreshNotifications();
+    })
+    this.notiRequestResetListener = EventRegister.addEventListener(global.NOTI_REQUEST_RESET, () => {
+      this.refreshNotifications();
+    })
+  }
+
+  componentWillUnmount() {
+    this.forcusListener();
+    EventRegister.removeEventListener(this.notiOfferAcceptListener);
+    EventRegister.removeEventListener(this.notiOfferRejectListener);
+    EventRegister.removeEventListener(this.notiRequestCreatedListener);
+    EventRegister.removeEventListener(this.notiTaskPaynowListener);
+    EventRegister.removeEventListener(this.notiOthersListener);
+    EventRegister.removeEventListener(this.notiRequestResetListener);
+  }
+
+  async getNotificationStatus() {
+    const response = await StepRequest(`notification-status`);
+    if(response != null) {
+      if(response.status == 1) {
+        this.setState({
+          notification_status: true
+        })
+      } else {
+        this.setState({
+          notification_status: false
+        })
+      }
+    }
+  }
+
+  async notificationSwtichChange() {
+    
+    var body = null;
+    if(this.state.notification_status) {
+      body = {
+        noti_status: 0
+      }
+    } else {
+      body = {
+        noti_status: 1
+      }
+    }
+    this.setState({
+      notification_status: !this.state.notification_status
+    })
+    const data = await StepRequest("notification-status", "POST", body);
+    if(data == null) {
+      this.setState({
+        notification_status: !this.state.notification_status
+      })
+    }
+  }
+
   async getNotifications() {
+
+    const userToken = await AsyncStorage.getItem("userToken");
+    if(userToken == null || userToken == "") {
+      this.setState({
+        screenLoading: false,
+        listLoading: false
+      });
+      return;
+    } 
+
     const { pageNo, data } = this.state;
     const isFirstPage = pageNo == 1;
     try {
-      console.log("1111111111   " + `notifications?page=${pageNo}`)
+     
       const response = await StepRequest(`notifications?page=${pageNo}`);
       this.setState({
         data: isFirstPage ? response.data : [...data, ...response.data],
@@ -276,6 +370,26 @@ class NotificationScreen extends Component {
         <Text style={[textStyle, secTitleStyle]}>
           {strings.chooseServiceAndLetsStart}
         </Text>
+        <View style = {{width: '100%', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', paddingHorizontal: 20}}>
+          <Text style={[ secTitleStyle, {color: colors.white, paddingHorizontal: 0, marginEnd: hScale(15.4), marginBottom: 0}]}>
+            {strings.notification_setting}
+          </Text>
+          <Text style={{fontSize: fScale(15), fontFamily: fonts.arial, color: colors.white, }}>
+            {isRTL && Platform.OS == "android" ? strings.on : strings.off}
+          </Text>
+          <View style = {{paddingHorizontal: hScale(5.4)}}>
+            <Switch
+                trackColor={{ false: "#767577", true: '#81b0ff' }}
+                thumbColor={this.state.notification_status ? "#ffffff" : '#f5dd4b'}
+                ios_backgroundColor="#3e3e3e"
+                onValueChange={() => this.notificationSwtichChange()}
+                value={this.state.notification_status}
+            />
+          </View>
+          <Text style={{fontSize: fScale(15), fontFamily: fonts.arial, color: colors.white, }}>
+            {isRTL && Platform.OS == "android" ? strings.off : strings.on}
+          </Text>
+        </View>
         {noNotifications ? (
           <EmptyScreen
             title={strings.noNotifications}
@@ -288,7 +402,7 @@ class NotificationScreen extends Component {
             }
           />
         ) : (
-            <FlatList
+            <SwipeListView
               onRefresh={() => this.refreshNotifications()}
               refreshing={listLoading}
               onEndReachedThreshold={0.5}
@@ -305,8 +419,9 @@ class NotificationScreen extends Component {
               keyExtractor={(item, index) => index.toString()}
               renderItem={({ item, index }) => {
                 const { type, moreData, data } = item;
+                const user = {type: "employee"}
                 const onPresses = {
-                  NewRequestEmployee: () => navigation.navigate("NewTasks"),
+                  NewRequestEmployee: () => navigation.navigate("Home", {screen: "ClientsTab", params: {user: user}}),
                   AcceptOfferEmployee: () => {
                     navigation.navigate("TaskDetails", { id: item.data })},
                   NewMessage: () =>
@@ -317,18 +432,11 @@ class NotificationScreen extends Component {
                     }),
                   PaymentOnlineLink: () => navigation.navigate("PaymentWebview", { uri: data }),
                   NewOfferClient: async () => {
-                    this.openRequestDetails(item.moreData.request_id)
-                    // await this.acceptOffer(item.moreData);
-                    // await this.refreshNotifications();
-                    // navigation.navigate("Chat", {
-                    //   receiver_id: moreData.employee.id,
-                    //   avatar: moreData.employee.avatar
-                    // });
+                    this.openRequestDetails(item.moreData.request_id);
                   },
                   OrderUnderPaymentEmployee: async () => {
                     this.openTaskDetails(moreData.request_id)
-                    // await this.completeRequest(data);
-                    // await this.refreshNotifications();
+
                   },
                   ReviewOrder: async () => {
                     this.setState({
@@ -348,6 +456,16 @@ class NotificationScreen extends Component {
                   />
                 );
               }}
+              renderHiddenItem = {({item, rowMap}) => (
+                <View style = {{ width: '100%', height: vScale(63), alignItems: 'flex-end' }}>
+                  <TouchableOpacity style = {{height: '100%', aspectRatio: 1, borderRadius: hScale(5), backgroundColor: '#FF0000', justifyContent: 'center', alignItems: 'center'}}
+                    onPress = {() => this.deleteNotification(item)}>
+                    <Text style = {styles.delete_textStyle}>{strings.notification_delete}</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              leftOpenValue={isRTL ? vScale(63) : 0}
+              rightOpenValue={isRTL ? 0 : -vScale(63)}
             />
           )}
       </Container>
@@ -441,7 +559,12 @@ const styles = StyleSheet.create({
   errorStyle: {
     color: colors.error,
     fontSize: fScale(13)
-  }
+  },
+  delete_textStyle: {
+    color: colors.white,
+    fontSize: fScale(14),
+    fontFamily: fonts.arial
+  },
 });
 
 export const Notification = connect(NotificationScreen);

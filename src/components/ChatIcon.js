@@ -13,6 +13,10 @@ export class ChatIconComponent extends React.PureComponent {
   }
   async checkNewMessages() {
     const { haveNewMessages } = this.state;
+    const {user} = this.props;
+    if(user.data.id == -1) {
+      return;
+    }
     try {
       const data = await StepRequest("unread-messages");
       this.setState({ haveNewMessages: data.unread });
@@ -21,6 +25,7 @@ export class ChatIconComponent extends React.PureComponent {
       Alert.alert(error.message);
     }
   }
+
   render() {
     const { container, imageStyle, roundedView } = styles;
     const { haveNewMessages } = this.state;
@@ -43,13 +48,14 @@ const styles = StyleSheet.create({
     marginEnd: hScale(10.9),
     width: hScale(29.6),
     height: hScale(25.8),
-    alignItems: "center"
+    alignItems: "center",
+    justifyContent: 'center',
   },
   imageStyle: {
     ...rcScale(18.9, 15.1),
     // width: hScale(18.9),
     // height: vScale(15.1),
-    marginTop: vScale(5.35),
+    // marginTop: vScale(5.35),
     position: "absolute"
   },
   roundedView: {

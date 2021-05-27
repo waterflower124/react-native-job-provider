@@ -9,11 +9,12 @@ import {
   View,
   KeyboardAvoidingView,
   I18nManager,
-  AsyncStorage,
   Alert,
-  Platform
+  Platform,
+  Linking
 } from "react-native";
 import { isEmpty, isEmail } from "step-validators";
+import AsyncStorage from '@react-native-community/async-storage';
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { fScale, hScale, sWidth, vScale } from "step-scale";
 import { icons, fonts } from "../assets";
@@ -28,6 +29,9 @@ import {
   GoogleMapiAPIKey
 } from "../helpers";
 import { connect } from "step-react-redux";
+import { StepRequest } from "step-api-client";
+import VersionCheck from 'react-native-version-check';
+
 
 class EmployeeSignUpScreen extends Component {
   static navigationOptions = ({ navigation }) => ({
@@ -42,8 +46,9 @@ class EmployeeSignUpScreen extends Component {
     modalVisible: false,
     // location: null,
     mobile: "",
-    commercial: "",
+    // commercial: "",
     bankAccount: "",
+    national_iqama_commercial: "",
     password: "",
     confirmPassword: "",
     error: "",
@@ -69,6 +74,7 @@ class EmployeeSignUpScreen extends Component {
     temp_latitude: 0.0,
     temp_longitude: 0.0,
   };
+
   async uploadPhotoPress() {
     const { imageObject, imageSource } = await ImagePicker({
       width: 100,
@@ -83,11 +89,10 @@ class EmployeeSignUpScreen extends Component {
     });
   }
 
-  validateSelection(
+  async validateSelection(
     bankError,
     isEmptyBank,
-    commericalError,
-    isEmptyCommerical,
+    isEmptyNational_iqamaError,
     isEmptyFirstName,
     isEmptyLastName,
     isEmptyPhone,
@@ -101,14 +106,32 @@ class EmployeeSignUpScreen extends Component {
     passwordError,
     confirmPasswordError
   ) {
+
+    let updateNeeded = await VersionCheck.needUpdate();
+    if(updateNeeded && updateNeeded.isNeeded) {
+      Alert.alert(strings.pls_update, strings.update_message,
+        [
+          {
+            text: strings.ok,
+            onPress: () => {
+              Linking.openURL(updateNeeded.storeUrl);
+            }
+          }
+        ]
+      );
+      return;
+    }
+
     const {
       submittedCity,
       selected_city,
       submittedRange,
       submittedService,
       submittedBank,
-      location
+      location,
+      avatar
     } = this.state;
+
     if (selected_city == "") {
       this.setState({ chooseCity: true });
     } else if (location == "") {
@@ -123,8 +146,7 @@ class EmployeeSignUpScreen extends Component {
       this.validateInputs(
         bankError,
         isEmptyBank,
-        commericalError,
-        isEmptyCommerical,
+        isEmptyNational_iqamaError,
         isEmptyFirstName,
         isEmptyLastName,
         isEmptyPhone,
@@ -139,13 +161,13 @@ class EmployeeSignUpScreen extends Component {
         confirmPasswordError
       );
     }
+
   }
 
-  validateInputs({
+  async validateInputs({
     bankError,
     isEmptyBank,
-    commericalError,
-    isEmptyCommerical,
+    isEmptyNational_iqamaError,
     isEmptyFirstName,
     isEmptyLastName,
     isEmptyPhone,
@@ -166,7 +188,7 @@ class EmployeeSignUpScreen extends Component {
       selectedRange,
       selectedService,
       bankAccount,
-      commercial,
+      national_iqama_commercial,
       password,
       mobile,
       first_name,
@@ -180,6 +202,8 @@ class EmployeeSignUpScreen extends Component {
     } = this.state;
     if ((isEmptyBank, bankError)) {
       error = "bank";
+    } else if(isEmptyNational_iqamaError) {
+      error = "commercial_id";
     } else if ((isEmptyFirstName, firstNameError)) {
       error = "name";
     } else if ((isEmptyLastName, lastNameError)) {
@@ -202,7 +226,7 @@ class EmployeeSignUpScreen extends Component {
         category_id: selectedService.map(e => e.id),
         bank_id: selectedBank.id,
         bank_no: bankAccount,
-        commercial,
+        national_iqama_commercial,
         mobile,
         email,
         password,
@@ -210,20 +234,32 @@ class EmployeeSignUpScreen extends Component {
         last_name,
         selected_city,
         temp_latitude,
-        temp_longitude,
+        temp_longitude
       };
+      
       if (avatar != null) {
-        userData.avatar == avatar;
+        userData.avatar = avatar;
       }
-      this.props.navigation.navigate("VerifyPhone", {
-        userData
-      });
-      console.warn("userData", userData);
+      try {
+        const data = await StepRequest("otp/register_send", "POST", { mobile, email });
+  
+        if(data.status == 0) {
+          Alert.alert(data.message);
+          return;
+        } else {
+          
+          this.props.navigation.navigate("VerifyPhone", {
+            userData
+          });
+        }
+      } catch(error) {
+        Alert.alert(error.message);
+        return;
+      }
     } else {
       this.setState({ error });
     }
   }
-
   
   getCurrentAddress = async() => {
     this.setState({
@@ -252,6 +288,8 @@ class EmployeeSignUpScreen extends Component {
                 this.setState({
                     location: responseData.results[0].formatted_address,
                 })
+                var i = 0;
+                var j = 0;
                 for(i = 0; i < responseData.results[0].address_components.length; i ++) {
                     for(j = 0; j < responseData.results[0].address_components[i].types.length; j ++) {
                         if(responseData.results[0].address_components[i].types[j] == "locality") {
@@ -307,8 +345,9 @@ class EmployeeSignUpScreen extends Component {
       modalVisible,
       location,
       mobile,
-      commercial,
+      // commercial,
       bankAccount,
+      national_iqama_commercial,
       password,
       confirmPassword,
       error,
@@ -347,20 +386,18 @@ class EmployeeSignUpScreen extends Component {
     const isPasswordError = error === "password";
     const isConfirmPasswordError = error === "confirmPassword";
     const isBankAccountError = error === "bank";
-    const isCommericalRegisterError = error === "commerical";
+    const isNational_iqamaError = error === "commercial_id";
     const isAvatarError = error == "avatar";
     const isPhoneError = error === "phone";
     const isEmptyBank = bankAccount.length == 0;
     const isEmptyMail = isEmpty(email);
-    const isEmptyCommerical = commercial.length == 0;
     const isEmptyPhone = mobile.length == 0;
     const isEmptyPassword = password.length == 0;
     const isEmptyConfirmPassword = confirmPassword.length == 0;
     const bankError =  bankAccount.length != 24 || !bankAccount.startsWith("SA");
     const showBankError = bankAccount.length > 0 || isBankAccountError;
-    const commericalError = isNaN(commercial) || commercial.length < 4;
-    const showcommercialError =
-      commercial.length > 0 || isCommericalRegisterError;
+    // const commericalError = isNaN(commercial) || commercial.length < 4;
+    const showNational_iqamaError = national_iqama_commercial.length > 0 || isNational_iqamaError;
     const isEmptyFirstName = first_name.length == 0;
     const isEmptyLastName = last_name.length == 0;
     const firstNameError = first_name.length < 3;
@@ -379,6 +416,7 @@ class EmployeeSignUpScreen extends Component {
       isNaN(mobile) || mobile.length != 10 || !mobile.startsWith(0);
     const showPhoneError = mobile.length > 0 || isPhoneError;
     const { isRTL } = I18nManager;
+    const isEmptyNational_iqamaError = national_iqama_commercial.length < 10;
     return (
       <Container transparentImage style={container}>
         <Modal animationType="fade" transparent={false} visible={modalVisible}>
@@ -395,8 +433,10 @@ class EmployeeSignUpScreen extends Component {
               longitudeDelta: 20
             }}
             onMapReady={() => {
+              
               getUserLocation(
                 position => {
+                  console.log(position.coords)
                   const { latitude, longitude } = position.coords;
                   this.myMapView.animateToRegion({
                     latitude,
@@ -410,7 +450,7 @@ class EmployeeSignUpScreen extends Component {
                     error: ""
                   });
                 },
-                error => { }
+                error => { console.log(error) }
               );
             }}
             onRegionChangeComplete={region => {
@@ -607,6 +647,19 @@ class EmployeeSignUpScreen extends Component {
               inputStyle={{ marginStart: 0 }}
             />
             <TextField
+              onChangeText={national_iqama_commercial => this.setState({ national_iqama_commercial })}
+              value={national_iqama_commercial}
+              errorMessage={
+                isEmptyNational_iqamaError && showNational_iqamaError && strings.invalidNational_iqama
+              }
+              authInputs
+              label={strings.national_iqama_commercial}
+              customMainContainer={customMainContainer}
+              containerStyle={{ paddingStart: hScale(2) }}
+              labelStyle={{ marginBottom: 0 }}
+              inputStyle={{ marginStart: 0 }}
+            />
+            {/* <TextField
               onChangeText={commercial => this.setState({ commercial })}
               value={commercial}
               errorMessage={
@@ -620,7 +673,7 @@ class EmployeeSignUpScreen extends Component {
               containerStyle={{ paddingStart: hScale(2) }}
               labelStyle={{ marginBottom: 0 }}
               inputStyle={{ marginStart: 0 }}
-            />
+            /> */}
             <TextField
               onChangeText={first_name => this.setState({ first_name })}
               value={first_name}
@@ -718,9 +771,9 @@ class EmployeeSignUpScreen extends Component {
                 this.validateSelection({
                   bankError,
                   isEmptyBank,
-                  commericalError,
-                  isEmptyCommerical,
+                  isEmptyNational_iqamaError,
                   isEmptyFirstName,
+                  isEmptyLastName,
                   isEmptyPhone,
                   isEmptyMail,
                   firstNameError,

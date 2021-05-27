@@ -13,32 +13,45 @@ import { colors } from "../constants";
 import { strings } from "../strings";
 import { fonts, icons } from "../assets";
 import { StepRequest } from "step-api-client";
+import AsyncStorage from '@react-native-community/async-storage';
+import { EventRegister } from 'react-native-event-listeners';
+import global from '../global/global';
 
 export class NewTasks extends Component {
   constructor(props) {
     super(props);
+
+    this.state = { 
+      screenLoading: true, 
+      data: [], 
+      listLoading: false,
+      guest_login: true,
+    };
+
+    this.props.navigation.setOptions({
+      headerLeft: () => <HeaderLogo />,
+      headerRight: () =>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <CreditBalance onPress={() => this.props.navigation.navigate("Transactions")} />
+          <DrawerIcon onPress={() => this.props.navigation.openDrawer()} />
+        </View>
+    })
+
     this.props.navigation.setParams({
       refreshTasks: () => this.refreshTasks()
     });
   }
-  static navigationOptions = ({ navigation }) => ({
-    headerLeft: <HeaderLogo />,
-    headerRight: (
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <CreditBalance onPress={() => navigation.navigate("Transactions")} />
-        <DrawerIcon onPress={() => navigation.openDrawer()} />
-      </View>
-    )
-  });
-  state = { 
-    screenLoading: true, 
-    data: [], 
-    listLoading: false 
-  };
+
+  async UNSAFE_componentWillMount() {
+    
+  }
+
   async componentDidUpdate(prevProps) {
     const { navigation } = this.props;
-    const oldRefresh = prevProps.navigation.getParam("refresh");
-    const newRefresh = navigation.getParam("refresh");
+    // const oldRefresh = prevProps.navigation.getParam("refresh");
+    // const newRefresh = navigation.getParam("refresh");
+    const oldRefresh = prevProps.route.refresh;
+    const newRefresh = this.props.route.params.refresh;
     if (newRefresh && newRefresh != oldRefresh) {
       await navigation.setParams({
         refresh: false
@@ -46,14 +59,54 @@ export class NewTasks extends Component {
       this.refreshTasks();
     }
   }
-  componentDidMount() {
-    this.loadData();
+
+  async UNSAFE_componentWillMount() {
+    const userToken = await AsyncStorage.getItem("userToken");
+    if(userToken == null || userToken == "") {
+      this.setState({
+        guest_login: true,
+      }, () => this.loadData())
+    } else {
+      this.setState({
+        guest_login: false,
+      }, () => this.loadData())
+    }
   }
+
+  componentDidMount() {
+
+    this.forcusListener = this.props.navigation.addListener('focus', () => {
+      if(!this.state.screenLoading) {
+        this.refreshTasks();
+      }
+      
+    });
+
+    this.notiListener = EventRegister.addEventListener(global.NOTI_REQUEST_CREATED, (data) => {
+      if(!this.state.screenLoading) {
+        this.refreshTasks();
+      }
+    })
+  }
+
+  componentWillUnmount() {
+    this.forcusListener();
+    EventRegister.removeEventListener(this.notiListener);
+  }
+  
   async loadData() {
     try {
-      const data = await StepRequest("new-tasks");
+      var data = null;
+      if(this.state.guest_login) {
+        console.log("----------------- this is guest login")
+        data = await StepRequest("task-history");
+      } else {
+        console.log("----------------- this is not guest login")
+        data = await StepRequest("new-tasks");
+      }
+      
       this.setState({ data, screenLoading: false, listLoading: false });
-      console.log("tasks", JSON.stringify(data));
+      
     } catch (error) {
       this.setState({ screenLoading: false, listLoading: false });
       Alert.alert(error.message);

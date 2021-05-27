@@ -1,0 +1,9 @@
+Keystone password: 123123
+Alias: key0
+Alias password: 123123
+First and last name: Ahmed
+Organization unit: Institute
+Organization: IIST
+City: Riyadh
+State: Riyadh
+Country code: SA

@@ -2,11 +2,15 @@ import React, { Component } from "react";
 import { FlatList, StyleSheet, View, Alert } from "react-native";
 import { hScale, vScale } from "step-scale";
 import { icons } from "../assets";
-import { Container, EmptyScreen, MessageCard } from "../components";
+import { Container, EmptyScreen, MessageCard, BackButton } from "../components";
 import { colors } from "../constants";
 import { strings } from "../strings";
 import { Step_API_Helpers, StepRequest } from "step-api-client";
 import { connect } from "step-react-redux";
+import { defaultNavigationOptions, whiteHeaderOptions } from '../navigation/options';
+import AsyncStorage from '@react-native-community/async-storage';
+import { EventRegister } from 'react-native-event-listeners';
+import global from '../global/global';
 
 class MessagesScreen extends Component {
   constructor(props) {
@@ -14,6 +18,16 @@ class MessagesScreen extends Component {
     this.props.navigation.setParams({
       refreshChatList: () => this.refreshChatList()
     });
+
+    this.props.navigation.setOptions({
+      ...whiteHeaderOptions,
+      headerLeft: () => 
+        <BackButton
+          backWithTitle
+          onPress={() => this.props.navigation.goBack()}
+          title={strings.conversions}
+        />
+    })
   }
   state = {
     screenLoading: true,
@@ -25,8 +39,42 @@ class MessagesScreen extends Component {
 
   componentDidMount() {
     this.loadMessages();
+    this.notiOthersListener = EventRegister.addEventListener(global.NOTI_AMINISTRATOR, () => {
+      this.refreshChatList();
+    })
+    this.notiChatListener = EventRegister.addEventListener(global.NOTI_CHAT_OPEN, (data) => {
+      this.props.navigation.navigate("Chat", {
+        receiver_id: data.receiver_id,
+        avatar: null,
+        task_id: data.task_id
+      })
+    })
+    this.focusListener = this.props.navigation.addListener('focus', () => {
+      if(global.GOTO_CHAT) {
+        global.GOTO_CHAT = false;
+        this.props.navigation.navigate("Chat", {
+          receiver_id: global.GOTO_CHAT_RECEIVER_ID,
+          avatar: null,
+          task_id: global.GOTO_CHAT_TASK_ID
+        })
+      }
+    })
   }
+
+  async componentWillUnmount() {
+    EventRegister.removeEventListener(this.notiOthersListener);
+  }
+
   async loadMessages() {
+    const userToken = await AsyncStorage.getItem("userToken");
+    if(userToken == null || userToken == "") {
+      this.setState({
+        screenLoading: false,
+        listLoading: false
+      });
+      return;
+    }
+
     const { pageNo } = this.state;
     const params = Step_API_Helpers.convertObjToParams({
       page: pageNo
@@ -35,8 +83,14 @@ class MessagesScreen extends Component {
 
       const list = await StepRequest(`messages?${params}`);
       console.log("list", JSON.stringify(list));
+      var temp_list = []
+      for(i = 0; i < list.data.length; i ++) {
+        if(list.data[i].second) {
+          temp_list.push(list.data[i])
+        }
+      }
       this.setState({
-        list: list.data,
+        list: temp_list,
         last_page: list.last_page,
         screenLoading: false,
         listLoading: false
@@ -122,7 +176,8 @@ const styles = StyleSheet.create({
     },
     shadowRadius: hScale(7),
     shadowOpacity: 1,
-    elevation: 10
+    elevation: 10,
+    paddingBottom: vScale(64)
   },
   separatorStyle: {
     width: hScale(339.3),

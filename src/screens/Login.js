@@ -6,7 +6,8 @@ import {
   View,
   ScrollView,
   KeyboardAvoidingView,
-  Alert
+  Alert,
+  Linking
 } from "react-native";
 import { fScale, hScale, vScale } from "step-scale";
 import { icons, fonts } from "../assets";
@@ -16,19 +17,45 @@ import { strings } from "../strings";
 import { connect } from "step-react-redux";
 import { StepRequest } from "step-api-client";
 import { actions, convertNumbers2English, languageSwitcher } from "../helpers";
+import AsyncStorage from '@react-native-community/async-storage';
+import VersionCheck from 'react-native-version-check';
 
 class LoginScreen extends Component {
-  static navigationOptions = ({ navigation }) => ({
-    headerLeft: <BackButton onPress={() => navigation.goBack()} />
-  });
+  
+  constructor(props) {
+    super(props);
+    
+  }
   state = {
     validateLoading: false,
     error: "",
+    // mobile: "0598954125",
+    // password: "123456789",
     mobile: "",
     password: ""
   };
 
-  validateInputs(isEmptyPhone, isEmptyPassword, numberError, passwordError) {
+  UNSAFE_componentWillMount() {
+    
+  }
+
+  async validateInputs(isEmptyPhone, isEmptyPassword, numberError, passwordError) {
+    
+    let updateNeeded = await VersionCheck.needUpdate();
+    if(updateNeeded && updateNeeded.isNeeded) {
+      Alert.alert(strings.pls_update, strings.update_message,
+        [
+          {
+            text: strings.ok,
+            onPress: () => {
+              Linking.openURL(updateNeeded.storeUrl);
+            }
+          }
+        ]
+      );
+      return;
+    }
+
     let error = "";
     if ((isEmptyPhone, numberError)) {
       error = "phone";
@@ -41,27 +68,34 @@ class LoginScreen extends Component {
       this.setState({ error });
     }
   }
+
   async login() {
     const { mobile, password } = this.state;
     this.setState({ validateLoading: true });
     const { navigation } = this.props;
     const lang = await languageSwitcher.getCurrentLanguageCode();
-    console.log("lang", lang);
+    
     const loginData = { mobile, password, lang };
     try {
-      const data = await StepRequest("login", "POST", loginData);
-      console.log("data::::::::::::::", data);
+      
+      const data = await StepRequest("employeelogin", "POST", loginData);
+      
       actions.setUserData({
         data: data.user,
         userToken: data.token
       });
+
+      const user = { data: data.user, loggedIn: true };
+      AsyncStorage.setItem("user", JSON.stringify(user));
+      await AsyncStorage.setItem("userToken", data.token);
+
       this.setState({ mobile: "", password: "", validateLoading: false });
-      const isEmployee = data.user.type == "employee";
-      const screenToNavigate = isEmployee ? "ClientsTab" : "Home";
-      navigation.navigate(screenToNavigate);
+
+      navigation.navigate("rootDrawerNavigator", {screen: 'Home', params: {user: data.user}});
+
     } catch (error) {
       this.setState({ validateLoading: false });
-      console.log(error.message);
+      console.log(JSON.stringify(error));
       Alert.alert(error.message);
     }
   }
@@ -169,13 +203,23 @@ class LoginScreen extends Component {
               <TouchableOpacity
                 disabled={validateLoading}
                 style={signUpButtonStyle}
-                onPress={() => navigation.navigate("SignUpSelection")}
+                // onPress={() => navigation.navigate("SignUpSelection")}
+                onPress={() => navigation.navigate("EmployeeSignUp")}
               >
                 <Text style={[dontHaveAccountStyle, { color: colors.first }]}>
                   {strings.signUp}
                 </Text>
               </TouchableOpacity>
             </View>
+            {/* <View style={dontHaveAccountContainer}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate("LoginGuest")}
+              >
+                <Text style={[dontHaveAccountStyle, { color: colors.first }]}>
+                  {strings.loginasGuest}
+                </Text>
+              </TouchableOpacity>
+            </View> */}
           </KeyboardAvoidingView>
         </ScrollView>
       </Container>
@@ -263,4 +307,10 @@ const styles = StyleSheet.create({
   }
 });
 
+// LoginScreen.setOptions = ({navigation}) => {
+//   return {
+//     headerLeft: () => <BackButton onPress={() => navigation.goBack()} />,
+//     headerRight: () => <BackButton onPress={() => navigation.goBack()} />
+//   }
+//  }
 export const Login = connect(LoginScreen);

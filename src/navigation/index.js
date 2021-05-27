@@ -1,65 +1,35 @@
-import {
-  createAppContainer,
-  createDrawerNavigator,
-  createSwitchNavigator
-} from "react-navigation";
-import {
-  YourTasks,
-  YourRequests,
-  Notification,
-  History,
-  EditClientProfile,
-  Messages,
-  EditEmployeeProfile
-} from "../screens";
+
+import React, { Component } from "react";
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { defaultNavigationOptions } from "./options";
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+
 import authNavigator from "./AuthNavigator";
-import tabNavigation from "./TabNavigator";
-import { drawerOptions } from "./options";
-import { SideMenu } from "../components";
+import rootDrawerNavigator from "./RootDrawerNavigator";
 
-const rootNavigator = createDrawerNavigator(
-  {
-    NewTasks: {
-      screen: tabNavigation
-    },
-    YourTasks: {
-      screen: YourTasks
-    },
-    Home: {
-      screen: tabNavigation
-    },
-    YourRequests: {
-      screen: YourRequests
-    },
-    Messages: {
-      screen: Messages
-    },
-    Notification: {
-      screen: Notification
-    },
-    History: {
-      screen: History
-    },
-    EditClientProfile: {
-      screen: EditClientProfile
-    },
-    EditEmployeeProfile: {
-      screen: EditEmployeeProfile
-    }
-  },
-  {
-    contentComponent: SideMenu,
-    ...drawerOptions
+import {navigationRef, isReadyRef} from '../global/ReactNavigation';
+
+const Stack = createStackNavigator();
+
+
+export default class AppNavigator extends Component {
+
+  constructor(props) {
+      super(props);
+      
   }
-);
 
-const switchNavigator = createSwitchNavigator({
-  authNavigator: {
-    screen: authNavigator
-  },
-  rootNavigator: {
-    screen: rootNavigator
+  render() {
+      return (
+          <NavigationContainer ref = {navigationRef} onReady = {() => {
+              isReadyRef.current = true;
+          }}>
+                <Stack.Navigator headerMode = "none" screenOptions = {{gestureEnabled: false}}>
+                    <Stack.Screen name = "authNavigator" component = {authNavigator}/>
+                    <Stack.Screen name = "rootDrawerNavigator" component = {rootDrawerNavigator}/>
+                </Stack.Navigator>
+          </NavigationContainer>
+      );
   }
-});
-
-export default createAppContainer(switchNavigator);
+}

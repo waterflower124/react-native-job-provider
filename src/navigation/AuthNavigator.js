@@ -1,45 +1,38 @@
-import { createStackNavigator } from "react-navigation";
-import { defaultNavigationOptions } from "./options";
-import {
-  Intro,
-  Login,
-  SignUp,
-  EnterPhone,
-  VerifyPhone,
-  NewPassword,
-  SignUpSelection,
-  EmployeeSignUp
-} from "../screens";
-const authNavigator = createStackNavigator(
-  {
-    Intro: {
-      screen: Intro
-    },
-    Login: {
-      screen: Login
-    },
-    SignUp: {
-      screen: SignUp
-    },
-    SignUpSelection: {
-      screen: SignUpSelection
-    },
-    EmployeeSignUp: {
-      screen: EmployeeSignUp
-    },
-    EnterPhone: {
-      screen: EnterPhone
-    },
-    VerifyPhone: {
-      screen: VerifyPhone
-    },
-    NewPassword: {
-      screen: NewPassword
-    }
-  },
-  {
-    defaultNavigationOptions
-  }
-);
 
-export default authNavigator;
+import React, { Component } from "react";
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+
+import {Intro} from "../screens/Intro";
+import {Login} from "../screens/Login";
+import {EnterPhone} from "../screens/EnterPhone";
+import {EmployeeSignUp} from "../screens/EmployeeSignup";
+import {VerifyPhone} from "../screens/VerifyPhone";
+import {NewPassword} from "../screens/NewPassword";
+
+import { defaultNavigationOptions } from "./options";
+import { BackButton, Button, Container, TextField } from "../components";
+
+const Stack = createStackNavigator();
+
+
+export default class authNavigator extends Component {
+
+  constructor(props) {
+      super(props);
+      
+  }
+
+  render() {
+      return (
+            <Stack.Navigator headerMode = "screen" screenOptions = {defaultNavigationOptions}>
+                <Stack.Screen name = "Intro" component = {Intro} options = {defaultNavigationOptions}/>
+                <Stack.Screen name = "Login" component = {Login} options = { ({navigation, route}) => ({headerLeft: () => (<BackButton onPress={() => navigation.goBack()}/>)})}/>
+                <Stack.Screen name = "EnterPhone" component = {EnterPhone} options = { ({navigation, route}) => ({headerLeft: () => (<BackButton onPress={() => navigation.goBack()}/>)})}/>
+                <Stack.Screen name = "EmployeeSignUp" component = {EmployeeSignUp} options = { ({navigation, route}) => ({headerLeft: () => (<BackButton onPress={() => navigation.goBack()}/>)})}/>
+                <Stack.Screen name = "VerifyPhone" component = {VerifyPhone} options = { ({navigation, route}) => ({headerLeft: () => (<BackButton onPress={() => navigation.goBack()}/>)})}/>
+                <Stack.Screen name = "NewPassword" component = {NewPassword} options = { ({navigation, route}) => ({headerLeft: () => (<BackButton onPress={() => navigation.goBack()}/>)})}/>
+            </Stack.Navigator>
+      );
+  }
+}

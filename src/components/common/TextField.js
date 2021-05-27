@@ -194,7 +194,8 @@ const styles = StyleSheet.create({
     minHeight: vScale(35.4),
     fontSize: fScale(12),
     // marginStart: hScale(10),
-    fontFamily: fonts.arial
+    fontFamily: fonts.arial,
+    padding: 0
   },
   errorMessageStyle: {
     alignSelf: "stretch",

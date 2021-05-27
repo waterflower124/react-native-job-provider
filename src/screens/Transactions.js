@@ -9,38 +9,54 @@ import { hScale, vScale, fScale } from "step-scale";
 import { connect } from "step-react-redux";
 import { actions } from "../helpers";
 import { colors } from "../constants";
+import AsyncStorage from '@react-native-community/async-storage';
 
-export class TransactionsScreen extends Component {
-  state = { screenLoading: true, data: [], listLoading: false };
-  static navigationOptions = ({ navigation }) => {
-    const avatar = navigation.getParam("avatar", null);
-    return {
+class TransactionsScreen extends Component {
+  constructor(props) {
+    super(props);
+
+    const { navigation, user } = this.props;
+
+    const avatar = user.data.avatar;
+    this.props.navigation.setOptions({
       ...whiteHeaderOptions,
-      headerRight: (
+      headerRight: () =>
         <Image
           source={avatar ? { uri: avatar } : icons.userPlaceholder}
           resizeMode={"cover"}
           style={styles.avatarStyle}
-        />
-      ),
-      headerLeft: (
+        />,
+      headerLeft: () =>
         <BackButton
           backWithTitle
-          onPress={() => navigation.goBack()}
+          onPress={() => this.props.navigation.goBack()}
           title={strings.transactions}
         />
-      )
-    };
-  };
+    })
+
+  }
+
+  state = { screenLoading: true, data: [], listLoading: false };
+
+  
   componentDidMount() {
     this.getTransactions();
   }
   async getTransactions() {
+    const userToken = await AsyncStorage.getItem("userToken");
+    if(userToken == null || userToken == "") {
+      this.setState({
+        screenLoading: false,
+        listLoading: false
+      });
+      return;
+    }
+
     try {
       const data = await StepRequest("transactions");
       await actions.refreshWalletBalance();
       this.setState({ data, screenLoading: false, listLoading: false });
-      console.warn("data", data);
+      
     } catch (error) {
       Alert.alert(error.message);
       this.props.navigation.goBack();

@@ -8,7 +8,7 @@ import { fonts } from "../assets";
 export class PriceCalculator extends Component {
   state = { isFocus: false };
   render() {
-    const { earn, appRatio, errorMessage } = this.props;
+    const { earn, appRatio, errorMessage, disableInput } = this.props;
     const { isFocus } = this.state;
     const {
       container,
@@ -36,6 +36,7 @@ export class PriceCalculator extends Component {
             onFocus={() => this.setState({ isFocus: true })}
             maxLength={10}
             keyboardType={"number-pad"}
+            editable={!disableInput}
             {...this.props}
           />
           <View style={earnContainer}>

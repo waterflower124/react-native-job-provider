@@ -7,16 +7,22 @@ import { whiteHeaderOptions } from "../navigation/options";
 import { strings } from "../strings";
 
 class PaymentWebviewScreen extends Component {
-  static navigationOptions = ({ navigation }) => ({
-    ...whiteHeaderOptions,
-    title: navigation.getParam("title"),
-    headerLeft: <BackButton onPress={() => navigation.goBack()} />
-  });
+
+  constructor(props) {
+    super(props);
+
+    this.props.navigation.setOptions({
+      ...whiteHeaderOptions,
+      title: this.props.route.params.title,
+      headerLeft: () => <BackButton onPress={() => this.props.navigation.goBack()} />
+    })
+
+  }
 
   render() {
     const { container } = styles;
     const { navigation } = this.props;
-    const uri = navigation.getParam("uri");
+    const uri = this.props.route.params.uri;
 
     return (
       <Container style={container}>
@@ -38,7 +44,7 @@ class PaymentWebviewScreen extends Component {
               }
               navigation.navigate("Notification", { refresh: true });
             } else {
-              console.warn("URL Changed to ", url);
+              // console.warn("URL Changed to ", url);
             }
           }}
         />

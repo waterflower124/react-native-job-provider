@@ -10,6 +10,7 @@ export const ConversationCard = (props) => {
     item,
     isPlaying,
     onPressPlay,
+    onPressImage,
     isOtherUserMsg,
     myAvatar,
     second
@@ -46,7 +47,9 @@ export const ConversationCard = (props) => {
         ]}
       >
         {isPhotoImage ? (
-          <Image source={{ uri: text }} style={sentImageStyle} />
+          <TouchableOpacity onPress={onPressImage}>
+            <Image source={{ uri: text }} style={sentImageStyle} />
+          </TouchableOpacity>
           ) : isVoiceMessage ? (
             <TouchableOpacity onPress={onPressPlay} disabled={isPlaying}>
             <Image

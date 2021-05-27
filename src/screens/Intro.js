@@ -6,10 +6,12 @@ import {
   Text,
   TouchableOpacity,
   ImageBackground,
-  ActivityIndicator
+  ActivityIndicator,
+  Linking,
+  Alert
 } from "react-native";
 import { fScale, hScale, vScale, sWidth } from "step-scale";
-import StepOneSignal from "step-onesignal";
+// import StepOneSignal from "step-onesignal";
 import { images, fonts, icons } from "../assets";
 import { colors } from "../constants";
 import { strings } from "../strings";
@@ -18,6 +20,8 @@ import { connect } from "step-react-redux";
 import Step_API_Client from "step-api-client";
 import { CrashCatcherMethods } from "step-crash-catcher";
 import { actions, languageSwitcher } from "../helpers";
+import AsyncStorage from '@react-native-community/async-storage';
+import VersionCheck from 'react-native-version-check';
 
 class IntroScreen extends Component {
   state = { screenLoading: true, langCode: null };
@@ -29,8 +33,15 @@ class IntroScreen extends Component {
   });
 
   async componentDidMount() {
-    const { user, navigation, accessToken } = this.props;
-    const { data, loggedIn } = user;
+    const { navigation } = this.props;
+    const user_str = await AsyncStorage.getItem("user");
+    var user = null;
+    if(user_str != null && user_str != "") {
+      user = JSON.parse(user_str);
+      
+    } 
+    
+
     Step_API_Client.onUnauthorized = () => {
       actions.removeUserData();
       navigation.navigate("Intro");
@@ -38,10 +49,35 @@ class IntroScreen extends Component {
     const langCode = await languageSwitcher.getCurrentLanguageCode();
     await languageSwitcher.switchTo(langCode);
     Step_API_Client.appendHeader("lang", langCode);
+
     await this.loadData();
+    let updateNeeded = await VersionCheck.needUpdate();
+    if(updateNeeded && updateNeeded.isNeeded) {
+      Alert.alert(strings.pls_update, strings.update_message,
+        [
+          {
+            text: strings.ok,
+            onPress: async() => {
+              Linking.openURL(updateNeeded.storeUrl);
+            }
+          }
+        ]
+      );
+      actions.removeUserData();
+      this.setState({ screenLoading: false });
+      return;
+    }
+    if(user == null) {
+      this.setState({ screenLoading: false });
+      return;
+    }
+    const { data, loggedIn } = user;
+    const accessToken = await AsyncStorage.getItem("userToken");
     if (loggedIn) {
       try {
-        Step_API_Client.appendHeader("Authorization", accessToken);
+        
+        Step_API_Client.appendHeader("Authorization", "Bearer " + accessToken);
+
         this.setState({ langCode });
         try {
           await actions.updateUser({ lang: langCode });
@@ -50,15 +86,23 @@ class IntroScreen extends Component {
         }
 
         const isEmployee = data.type == "employee";
-        console.warn("isEmployee", isEmployee);
+        
         if (isEmployee) {
           await actions.refreshWalletBalance();
         }
-        navigation.navigate(isEmployee ? "ClientsTab" : "Home");
-        StepOneSignal.onOpened = ()=> {
-          navigation.navigate("Notification")
-        }
-      } catch (error) {}
+
+        actions.setUserData({
+          data: data,
+          userToken: accessToken
+        });
+
+        navigation.navigate("rootDrawerNavigator", {screen: 'Home', params: {user: data}});
+        // StepOneSignal.onOpened = ()=> {
+        //   navigation.navigate("Notification")
+        // }
+      } catch (error) {
+        console.log("main catch::" + error.message)
+      }
     }
     this.setState({ screenLoading: false });
   }
@@ -72,7 +116,26 @@ class IntroScreen extends Component {
     } catch (error) {
       CrashCatcherMethods.setAppError(error.message);
       // this.setState({ screenLoading: false });
+      console.log("---------------------------")
+      console.log(error.message)
     }
+  }
+
+  loginAsGuest = async() => {
+    const user = { 
+      id: -1,
+      first_name: 'Guest',
+      last_name: "",
+      type: "employee"
+    };
+    actions.setUserData({
+      data: user,
+      userToken: ""
+    });
+    AsyncStorage.setItem("user", JSON.stringify(user));
+    AsyncStorage.setItem("userToken", "");
+    this.props.navigation.navigate("rootDrawerNavigator", {screen: 'Home', params: {user: user}});
+    // this.props.navigation.navigate("LoginGuest")
   }
   
   render() {
@@ -131,10 +194,15 @@ class IntroScreen extends Component {
                 />
                 <TouchableOpacity
                   style={registerContainer}
-                  onPress={() => navigation.navigate("SignUpSelection")}
+                  onPress={() => navigation.navigate("EmployeeSignUp")}
                 >
                   <Text style={registerTextStyle}>{strings.register}</Text>
                 </TouchableOpacity>
+                <View style = {{width: '100%', height: vScale(38.4), marginTop: vScale(10), justifyContent: 'center', alignItems: 'center'}}>
+                  <TouchableOpacity style = {{borderBottomColor: '#ffffff', borderBottomWidth: 1, paddingBottom: 5, paddingHorizontal: 5}} onPress={() => this.loginAsGuest()}>
+                    <Text style = {[styles.titleStyle, {color: '#ffffff'}]}>{strings.skip}</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
         </View>
@@ -156,7 +224,7 @@ const styles = StyleSheet.create({
     fontSize: fScale(22),
     fontFamily: fonts.arial,
     lineHeight: vScale(29),
-    marginBottom: vScale(100),
+    marginBottom: vScale(20),
     textAlign: "center",
     color: colors.white,
     textShadowColor: "rgba(0, 0, 0, 0.13)",
@@ -174,7 +242,7 @@ const styles = StyleSheet.create({
   buttonStyle: {
     width: hScale(297.5),
     height: vScale(43.2),
-    marginBottom: vScale(28.2),
+    marginTop: vScale(20),
     alignSelf: "center"
   },
   registerContainer: {
@@ -182,7 +250,7 @@ const styles = StyleSheet.create({
     height: vScale(43.2),
     alignItems: "center",
     justifyContent: "center",
-    alignSelf: "center"
+    alignSelf: "center",
   },
   titleStyle: {
     textAlign: "center",

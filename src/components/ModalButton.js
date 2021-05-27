@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     borderStyle: "solid",
     borderWidth: hScale(1),
     borderColor: "rgba(0, 0, 0, 0.07)",
-    elevation: 10
+    // elevation: 10
   },
   smallroundedViewStyle: {
     width: hScale(10),

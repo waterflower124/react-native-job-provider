@@ -5,6 +5,7 @@ export const colors = {
   mainBackground: "#e6ebef",
   first: "#7D3DB8",
   second: "#B4389F",
+  tab_icon: '#ABC0D1',
   statusBar: "#B4389F",
   paleGray: "#f0f3f6",
   mainText: "#08193c",

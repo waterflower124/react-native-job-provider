@@ -11,9 +11,10 @@ import { actions, languageSwitcher } from "../helpers";
 export class NewPassword extends Component {
   constructor(props) {
     super(props);
-    const userData = this.props.navigation.getParam("userData", null);
+    
     this.state = {
-      ...userData,
+      mobile: this.props.route.params.mobile, 
+      otp: this.props.route.params.otp,
       validateloading: false,
       error: "",
       password: "",
@@ -37,43 +38,21 @@ export class NewPassword extends Component {
       error = "confirmPassword";
     }
     if (error == "") {
-      this.signup();
+      this.setNewPassword();
     } else {
       this.setState({ error });
     }
   }
 
-  async signup() {
-    const { navigation } = this.props;
+  async setNewPassword() {
+    const { navigation, } = this.props;
+    const { mobile, otp, password } = this.state;
     this.setState({ validateloading: true });
-    const { first_name, last_name, mobile, email, password, avatar, location, selected_city, temp_latitude, temp_longitude } = this.state;
-    const lang = await languageSwitcher.getCurrentLanguageCode();
-    const userData = {
-      first_name,
-      last_name,
-      email,
-      mobile,
-      password,
-      type: "client",
-      lang,
-      lat: temp_latitude,
-      lng: temp_longitude,
-      address: location,
-      city: selected_city
-    };
-    if (avatar != null) {
-      userData.avatar = avatar;
-    }
-    console.log("userData", JSON.stringify(userData));
+    
     try {
-      const data = await StepRequest("register", "POST", userData);
-      actions.setUserData({
-        data: data.user,
-        userToken: data.token
-      });
-      console.log("data", JSON.stringify(data));
-      this.setState({ validateloading: false });
-      navigation.navigate("Home");
+      const data = await StepRequest("password/reset", "POST", {mobile, otp, password});
+      console.log(data)
+      navigation.navigate("Login");
       
     } catch (error) {
       console.log(error)

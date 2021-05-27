@@ -7,10 +7,17 @@ import { colors } from "../constants";
 import { strings } from "../strings";
 
 export class EnterPhone extends Component {
-  static navigationOptions = ({ navigation }) => ({
-    headerLeft: <BackButton onPress={() => navigation.goBack()} />
-  });
+
+  constructor(props) {
+    super(props);
+
+    this.props.navigation.setOptions({
+      headerLeft: () => <BackButton onPress={() => this.props.navigation.goBack()} />
+    })
+  }
+
   state = { validateLoading: false, error: "", mobile: "" };
+
   validateInputs(isEmptyPhone, numberError) {
     const { mobile } = this.state;
     let error = "";
@@ -26,6 +33,7 @@ export class EnterPhone extends Component {
       this.setState({ error });
     }
   }
+  
   render() {
     const {
       welcomeBackStyle,

@@ -1,6 +1,5 @@
-import React from "react";
-import { createStackNavigator } from "react-navigation";
-import { Chat, Messages, History, EditEmployeeProfile } from "../screens";
+import React, { Component } from "react";
+import { createStackNavigator } from '@react-navigation/stack';
 import {
   defaultNavigationOptions,
   whiteHeaderOptions,
@@ -9,41 +8,30 @@ import { BackButton, DrawerIcon } from "../components";
 import { strings } from "../strings";
 import { colors } from "../constants";
 
-const ChatTab = createStackNavigator(
-  {
-    Messages: {
-      screen: Messages,
-      navigationOptions: ({ navigation }) => ({
-        ...whiteHeaderOptions,
-        headerRight: (
-          <DrawerIcon
-            imageStyle={{ tintColor: colors.black }}
-            onPress={() => navigation.openDrawer()}
-          />
-        ),
-        headerLeft: (
-          <BackButton
-            backWithTitle
-            onPress={() => navigation.goBack()}
-            title={strings.conversions}
-            hideBack
-          />
-        )
-      })
-    },
-    Chat: {
-      screen: Chat
-    },
-    History: {
-      screen: History
-    },
-    EditEmployeeProfile: {
-      screen: EditEmployeeProfile
-    }
-  },
+import { Chat } from "../screens/Chat";
+import { Messages } from "../screens/Messages";
+import { History} from "../screens/History";
+import { EditEmployeeProfile } from "../screens/EditEmployeeProfile";
 
-  {
-    defaultNavigationOptions
+const Stack = createStackNavigator();
+
+export default class ChatTab extends Component {
+
+  constructor(props) {
+      super(props);
+
+      
   }
-);
-export default ChatTab;
+
+  render() {
+      return (
+            <Stack.Navigator headerMode = "screen" initialRouteName = "Messages" screenOptions = {defaultNavigationOptions}>
+                <Stack.Screen name = "Chat" component = {Chat} />
+                <Stack.Screen name = "Messages" component = {Messages} />
+                <Stack.Screen name = "History" component = {History}/>
+                <Stack.Screen name = "EditEmployeeProfile" component = {EditEmployeeProfile} />
+            </Stack.Navigator>
+      );
+  }
+}
+

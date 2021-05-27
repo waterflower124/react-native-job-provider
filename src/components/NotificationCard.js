@@ -179,12 +179,13 @@ export const NotificationCard = props => {
       style={container}
       onPress={onPress}
       disabled={disableButton || loading}
+      activeOpacity={1}
     >
-      <TouchableOpacity onPress={onPressDelete} style={{ position: "absolute", top: vScale(-5), left: hScale(-5), zIndex: 2, elevation: 2, backgroundColor: "white", ...crScale(isDeleting ?25: 15) }}>
+      {/* <TouchableOpacity onPress={onPressDelete} style={{ position: "absolute", top: vScale(-5), left: hScale(-5), zIndex: 2, elevation: 2, backgroundColor: "white", ...crScale(isDeleting ?25: 15) }}>
         {isDeleting ? <ActivityIndicator color={colors.red} size={"small"} style={crScale(10)} /> :
           <Image source={icons.xClose} style={[crScale(10), { tintColor: colors.red }]} resizeMode="contain" />
         }
-      </TouchableOpacity>
+      </TouchableOpacity> */}
       <View
         style={[
           imageContainer,
@@ -243,7 +244,7 @@ export const NotificationCard = props => {
           )}
       </View>
       {showButton && (
-        <TouchableOpacity style={buttonStyle} onPress={onPress}>
+        <TouchableOpacity style={buttonStyle} activeOpacity={1} onPress={onPress}>
           {loading ? (
             <ActivityIndicator color={colors.second} size={"small"} />
           ) : (

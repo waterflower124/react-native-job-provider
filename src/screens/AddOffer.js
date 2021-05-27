@@ -28,20 +28,31 @@ import { colors } from "../constants";
 import { whiteHeaderOptions } from "../navigation/options";
 import { strings } from "../strings";
 import { convertNumbers2English } from "../helpers";
+import AsyncStorage from '@react-native-community/async-storage';
+import { EventRegister } from 'react-native-event-listeners';
+import global from '../global/global';
+import { Colors } from "react-native/Libraries/NewAppScreen";
 
 class AddOfferScreen extends Component {
-  static navigationOptions = ({ navigation }) => ({
-    ...whiteHeaderOptions,
-    headerLeft: (
-      <BackButton
-        backWithTitle
-        onPress={() => navigation.goBack()}
-        title={strings.addOffer}
-      />
-    )
-  });
+
+  constructor(props) {
+    super(props);
+
+    this.props.navigation.setOptions({
+      ...whiteHeaderOptions,
+      headerLeft: () =>
+        <BackButton
+          backWithTitle
+          onPress={() => this.props.navigation.goBack()}
+          title={strings.addOffer}
+        />
+    })
+  }
+
+
   state = {
     data: [],
+    item: null,
     location: null,
     ratio: "",
     earn: "",
@@ -51,11 +62,51 @@ class AddOfferScreen extends Component {
     details: "",
     error: "",
     screenLoading: false,
-    loading: false
+    loading: false,
+    showImage: false,
+    showImageUrl: "",
+    guest_login: true,
   };
+
+  async UNSAFE_componentWillMount() {
+    const userToken = await AsyncStorage.getItem("userToken");
+    if(userToken == null || userToken == "") {
+      this.setState({
+        guest_login: true,
+      })
+    } else {
+      this.setState({
+        guest_login: false,
+      })
+      const request_id = this.props.route.params.id;
+      this.setState({ screenLoading: true });
+      try {
+        const data = await StepRequest(`new-task/${request_id}`);
+        this.setState({item: data});
+      } catch (error) {
+        Alert.alert(error.message);
+      }
+      this.setState({ screenLoading: false });
+    }
+  }
 
   componentDidMount() {
     this.getAppRatio();
+    this.notiRequestCreateOpenlistener = EventRegister.addEventListener(global.NOTI_REQUEST_CREATED_OPEN, (id) => {
+      if(id != this.state.request_id) {
+        this.setState({
+          request_id: id
+        }, async() => {
+          const data = await StepRequest(`new-task/${this.state.request_id}`);
+          this.setState({item: data});
+          this.getAppRatio();
+        })
+      }
+    })
+  }
+
+  componentWillUnmount() {
+    EventRegister.removeEventListener(this.notiRequestCreateOpenlistener);
   }
 
   async getAppRatio() {
@@ -80,6 +131,11 @@ class AddOfferScreen extends Component {
     }
   }
   validateInputs(isEmptyDetails, detailsError, isEmptyPrice, priceError) {
+    if(this.state.guest_login) {
+      Alert.alert(strings.signinRequest, "");
+      return;
+    }
+
     let error = "";
     if ((isEmptyPrice, priceError)) {
       error = "price";
@@ -95,7 +151,7 @@ class AddOfferScreen extends Component {
 
   async addOffer() {
     this.setState({ loading: true });
-    const request_id = this.props.navigation.getParam("id", null);
+    const request_id = this.props.route.params.id;
     const { price, details } = this.state;
     const offerData = {
       price,
@@ -135,7 +191,7 @@ class AddOfferScreen extends Component {
       chatImageStyle
     } = styles;
 
-    const item = this.props.navigation.getParam("item", null);
+    // const item = this.props.route.params.item;
 
     const {
       price,
@@ -145,7 +201,8 @@ class AddOfferScreen extends Component {
       screenLoading,
       loading,
       appEarning,
-      ratio
+      ratio,
+      item
     } = this.state;
 
     const isEmptyDetails = details.length == 0;
@@ -159,6 +216,20 @@ class AddOfferScreen extends Component {
     const { navigation } = this.props;
     return (
       <Container style={container} loading={screenLoading}>
+      {
+        this.state.showImage && this.state.showImageUrl != null && this.state.showImageUrl != "" &&
+        <View style = {{flex: 1, width: '100%', height: '100%', position: 'absolute', top: 0, left: 0, zIndex: 10, justifyContent: 'center', alignItems: 'center'}}
+          onStartShouldSetResponder = {() => {this.setState({showImage: false, showImageUrl: ""})}}>
+          <View style = {{width: '100%', height: '100%', backgroundColor: '#000000', opacity: 0.8, position: 'absolute', top: 0, left: 0}}></View>
+          <TouchableOpacity style = {{position: 'absolute', right: 20, top: 20, width: hScale(18), height: hScale(18), padding: hScale(3), borderRadius: hScale(12), backgroundColor: '#ffffff', zIndex: 10}}
+            onPress = {() => {this.setState({showImage: false, showImageUrl: ""})}}>
+            <Image source={icons.xClose} style={[{width: '100%', height: '100%', tintColor: colors.black }]} resizeMode="contain" />
+          </TouchableOpacity>
+          <Image style = {{width: '90%', height: '90%', resizeMode: 'contain'}} source = {{uri: this.state.showImageUrl}}/>
+        </View>
+      }
+      {
+        !screenLoading && item != null &&
         <ScrollView
           contentContainerStyle={contentContainerStyle}
           showsVerticalScrollIndicator={false}
@@ -168,11 +239,20 @@ class AddOfferScreen extends Component {
             keyboardVerticalOffset={-100}
           >
             <MainCard item={item} containerStyle={{ alignSelf: "center" }} disableTouch />
-            <Image
-              source={{ uri: item.image }}
-              style={mainImageStyle}
-              resizeMode={"cover"}
-            />
+          {
+            item.requirements_detail != null && item.requirements_detail != "" && 
+            <Text style = {{width: hScale(350.7), padding: fScale(10), borderRadius: hScale(5), borderWidth: 1, borderColor: '#a0a0a0', marginBottom: 10, textAlign: I18nManager.isRTL ? 'right' : 'left'}} multiline = {true}>{item.requirements_detail}</Text>
+          }
+          {
+            item.image != null && item.image != "" &&
+            <TouchableOpacity onPress = {() => {this.setState({showImage: true, showImageUrl: item.image})}}>
+              <Image
+                source={{ uri: item.image }}
+                style={mainImageStyle}
+                resizeMode={"cover"}
+              />
+            </TouchableOpacity>
+          }
             <MapView
               provider = {PROVIDER_GOOGLE}
               ref={ref => (this.myMapView = ref)}
@@ -218,9 +298,14 @@ class AddOfferScreen extends Component {
             </View>
               <TouchableOpacity
                 style={chatButtonStyle}
-                onPress={() =>
-                  navigation.navigate("Chat", { receiver_id: item.user_id, task_id: item.id })
-                }
+                onPress={() => {
+                  if(this.state.guest_login) {
+                    Alert.alert(strings.signinRequest, "");
+                    return;
+                  }
+                  console.log(JSON.stringify(item))
+                  navigation.navigate("Chat", { receiver_id: item.client.id, task_id: item.id, avatar: item.client.avatar ? item.client.avatar : null })
+                }}
               >
                 <Image
                   source={icons.chatImage}
@@ -277,6 +362,7 @@ class AddOfferScreen extends Component {
             />
           </KeyboardAvoidingView>
         </ScrollView>
+        }
       </Container>
     );
   }
@@ -291,7 +377,8 @@ const styles = StyleSheet.create({
     width: hScale(350.7),
     height: vScale(107.3),
     borderRadius: hScale(5),
-    marginBottom: vScale(11.6)
+    marginBottom: vScale(11.6),
+    backgroundColor: '#999999'
   },
   mapContainer: {
     width: hScale(350.7),

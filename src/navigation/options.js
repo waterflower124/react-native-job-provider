@@ -1,13 +1,17 @@
-import { I18nManager } from 'react-native'
+import { I18nManager, React } from 'react-native'
 import { vScale, hScale, } from "step-scale";
-const { isRTL } = I18nManager
+const { isRTL } = I18nManager;
+
 export const defaultNavigationOptions = {
-  headerTransparent: true,
-  headerBackTitle: null,
-  headerStyle: {
-    height: vScale(80),
-    borderBottomWidth: 0
-  }
+    headerTitle: null,
+    headerTransparent: true,
+    headerBackTitle: null,
+    headerBackTitleVisible: false,
+    headerStyle: {
+        height: vScale(80),
+        borderBottomWidth: 0
+    },
+    gestureEnabled: false
 };
 
 export const whiteHeaderOptions = {
@@ -28,6 +32,6 @@ export const whiteHeaderOptions = {
 export const drawerOptions = {
   drawerBackgroundColor: "transparent",
   drawerWidth: hScale(243.1),
-  drawerPosition: isRTL ? "left" : "right"
+  drawerPosition: isRTL ? "right" : "left"
 };
 

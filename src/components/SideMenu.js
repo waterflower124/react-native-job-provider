@@ -10,7 +10,7 @@ import {
   Linking,
   I18nManager
 } from "react-native";
-import { SafeAreaView } from "react-navigation";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { fScale, hScale, vScale, rcScale } from "step-scale";
 import { icons, fonts } from "../assets";
 import { colors } from "../constants";
@@ -21,12 +21,15 @@ import { actions, changeLangAlert } from "../helpers";
 
 class SideMenuDrawer extends Component {
   state = { logoutLoading: false };
+
   async onPressLogout() {
-    const { navigation } = this.props;
-    this.setState({ logoutLoading: true });
+    const { navigation, user } = this.props;
     try {
-      const data = await StepRequest("logout", "POST");
-      console.warn(data);
+      if(user.data.id != -1) {
+        this.setState({ logoutLoading: true });
+        const data = await StepRequest("logout", "POST");
+      }
+      
       actions.removeUserData();
       this.setState({ logoutLoading: false });
       navigation.closeDrawer();
@@ -36,6 +39,7 @@ class SideMenuDrawer extends Component {
       console.warn(error.message);
     }
   }
+  
   render() {
     const {
       mainContainer,
@@ -60,52 +64,67 @@ class SideMenuDrawer extends Component {
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item, index }) => {
               const { icon, screen, name, iconStyle } = item;
-              const clientScreens = [
-                "Home",
-                "YourRequests",
-                "EditClientProfile"
-              ];
-              const employeeScreens = [
-                "NewTasks",
-                "YourTasks",
-                "History",
-                "EditEmployeeProfile"
-              ];
-              const isEmployee =
-                clientScreens.includes(screen) && user.data.type == "employee";
-              const isClient =
-                employeeScreens.includes(screen) && user.data.type == "client";
-              const shouldReturn = isEmployee || isClient;
-              if (shouldReturn) {
-                return;
-              }
+              // const clientScreens = [
+              //   "ServiceTab",
+              //   "RequestTab",
+              //   "MyProfileTab"
+              // ];
+              // const employeeScreens = [
+              //   "ClientsTab",
+              //   "TasksTab",
+              //   "HistoryTab",
+              //   "EditEmployeeProfileTab"
+              // ];
+              // const isEmployee = employeeScreens.includes(screen) && user.data.type == "client";
+              // const isClient = clientScreens.includes(screen) && user.data.type == "employee";
+              // const shouldReturn = isEmployee || isClient;
+              // if (shouldReturn) {
+              //   return;
+              // }
               return (
                 <TouchableOpacity
                   style={buttonStyle}
                   onPress={() => {
-                    navigation.navigate(screen);
+                    console.log(screen + "   " + user.data.type)
+                    // if(user.data.type == "client" && screen == "ChatTab") {
+                    //   navigation.navigate("Messages");
+                    // } else if(user.data.type == "employee" && screen == "EditEmployeeProfileTab") {
+                    //   navigation.navigate("EditEmployeeProfileTab");
+                    // } else if(screen == "HistoryTab") {
+                    //   navigation.navigate("History");
+                    // } else {
+                    //   navigation.navigate("Home", {screen: screen, params: {user: user.data}});
+                    // }
+                    
+                    if(screen == "ChatTab") {
+                      navigation.navigate("ChatTab");
+                    } else if(screen == "EditEmployeeProfileTab") {
+                      navigation.navigate("EditEmployeeProfileTab");
+                    } else if(screen == "HistoryTab") {
+                      navigation.navigate("History");
+                    } else {
+                      navigation.navigate("Home", {screen: screen, params: {user: user.data}});
+                    }
                     navigation.closeDrawer();
                   }}
                 >
-                  <Image
-                    source={icon}
-                    resizeMode={"contain"}
-                    style={[iconStyle, { marginEnd: hScale(12) }]}
-                  />
+                  <Image source={icon} resizeMode={"contain"} style={[iconStyle, { marginEnd: hScale(12) }]}/>
                   <Text style={[textStyle, { fontSize: fScale(16) }]}>
                     {name()}
                   </Text>
                 </TouchableOpacity>
               );
             }}
+
             ListHeaderComponent={() => {
               return (
                 <TouchableOpacity
                   onPress={() => {
                     if (user.data.type == "employee") {
-                      navigation.navigate("EditEmployeeProfile");
+                      navigation.navigate("EditEmployeeProfileTab");
                     } else {
-                      navigation.navigate("EditClientProfile");
+                     
+                      navigation.navigate("Home", {screen: "MyProfileTab", params: {user: user.data}})
                     }
                     navigation.closeDrawer();
                   }}
@@ -140,6 +159,7 @@ class SideMenuDrawer extends Component {
                 </TouchableOpacity>
               );
             }}
+
             ListFooterComponent={() => {
               return (
                 <View>
@@ -194,6 +214,15 @@ class SideMenuDrawer extends Component {
                       )}
                     </View>
                     <Text style={logoutTextStyle}>{strings.logout}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[buttonStyle, { paddingStart: hScale(53.9)}]}
+                    onPress={() => {
+                      Linking.openURL(socialURL.site_link)
+                      navigation.closeDrawer();
+                    }}
+                  >
+                    <Image style={{ width: hScale(32.5), height: hScale(20), resizeMode: 'contain' }} source = {require('../assets/icons/site_link.png')}/>
                   </TouchableOpacity>
                 </View>
               );
@@ -275,55 +304,55 @@ const styles = StyleSheet.create({
 
 const data = [
   {
-    screen: "NewTasks",
+    screen: "ClientsTab",
     name: () => strings.clients,
     icon: icons.clientdrawer,
     iconStyle: { width: hScale(13.9), height: vScale(15.7) }
   },
   {
-    screen: "YourTasks",
+    screen: "TasksTab",
     name: () => strings.tasks,
     icon: icons.service,
     iconStyle: { width: hScale(17.5), height: hScale(17.5) }
   },
+  // {
+  //   screen: "ServiceTab",
+  //   name: () => strings.Services,
+  //   icon: icons.service,
+  //   iconStyle: { width: hScale(17.5), height: hScale(17.5) }
+  // },
+  // {
+  //   screen: "RequestTab",
+  //   name: () => strings.requests,
+  //   icon: icons.clientdrawer,
+  //   iconStyle: { width: hScale(13.9), height: vScale(15.7) }
+  // },
   {
-    screen: "Home",
-    name: () => strings.Services,
-    icon: icons.service,
-    iconStyle: { width: hScale(17.5), height: hScale(17.5) }
-  },
-  {
-    screen: "YourRequests",
-    name: () => strings.requests,
-    icon: icons.clientdrawer,
-    iconStyle: { width: hScale(13.9), height: vScale(15.7) }
-  },
-  {
-    screen: "Messages",
+    screen: "ChatTab",
     name: () => strings.chat,
     icon: icons.chat,
     iconStyle: { width: hScale(18.1), height: vScale(14.5) }
   },
   {
-    screen: "Notification",
+    screen: "NotificationsTab",
     name: () => strings.notification,
     icon: icons.notify,
     iconStyle: { width: hScale(14.5), height: vScale(18.1) }
   },
   {
-    screen: "History",
+    screen: "HistoryTab",
     name: () => strings.history,
     icon: icons.calendar,
     iconStyle: { width: hScale(16.9), height: vScale(18.7) }
   },
+  // {
+  //   screen: "MyProfileTab",
+  //   name: () => strings.myprofile,
+  //   icon: icons.myprofile,
+  //   iconStyle: { width: hScale(14.5), height: hScale(14.5) }
+  // },
   {
-    screen: "EditClientProfile",
-    name: () => strings.myprofile,
-    icon: icons.myprofile,
-    iconStyle: { width: hScale(14.5), height: hScale(14.5) }
-  },
-  {
-    screen: "EditEmployeeProfile",
+    screen: "EditEmployeeProfileTab",
     name: () => strings.myprofile,
     icon: icons.myprofile,
     iconStyle: { width: hScale(14.5), height: hScale(14.5) }
@@ -332,7 +361,8 @@ const data = [
 
 const socialURL = {
   twitter: "https://twitter.com/HomeJobSA",
-  whatsapp: "https://wa.me/966501755873"
+  whatsapp: "https://wa.me/966501755873",
+  site_link: "https://maroof.sa/124623"
 }
 
 export const SideMenu = connect(SideMenuDrawer);

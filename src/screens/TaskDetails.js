@@ -17,11 +17,24 @@ import { whiteHeaderOptions } from "../navigation/options";
 import { StepRequest } from "step-api-client";
 import { connect } from "step-react-redux";
 import { actions } from "../helpers";
+import { EventRegister } from 'react-native-event-listeners';
+import global from '../global/global';
 
 class TaskDetailsScreen extends Component {
   constructor(props) {
     super(props);
-    const id = this.props.navigation.getParam("id", null);
+
+    this.props.navigation.setOptions({
+      ...whiteHeaderOptions,
+      headerLeft: () =>
+        <BackButton
+          backWithTitle
+          onPress={() => this.props.navigation.goBack()}
+          title={strings.request}
+        />
+    })
+
+    const id = this.props.route.params.id;
     this.state = {
       data: { lng: 0, lat: 0 },
       screenLoading: true,
@@ -32,25 +45,27 @@ class TaskDetailsScreen extends Component {
       order_id: null
     };
   }
-  static navigationOptions = ({ navigation }) => ({
-    ...whiteHeaderOptions,
-    headerLeft: (
-      <BackButton
-        backWithTitle
-        onPress={() => navigation.goBack()}
-        title={strings.request}
-      />
-    )
-  });
+  
   componentDidMount() {
     this.loadSingleTask();
+    this.notiOfferCreateOpenlistener = EventRegister.addEventListener(global.NOTI_OFFER_ACCEPT_OPEN, (id) => {
+      if(id != this.state.id) {
+        this.setState({
+          id: id
+        }, () => this.loadSingleTask())
+      }
+    })
   }
+
+  componentWillUnmount() {
+    EventRegister.removeEventListener(this.notiOfferCreateOpenlistener);
+  }
+
   async loadSingleTask() {
     const { id } = this.state;
     try {
       const data = await StepRequest(`employee-requests/${id}`);
       this.setState({ data, order_id: data.order.id, screenLoading: false });
-      console.log("sigle task response:", JSON.stringify(data));
     } catch (error) {
       this.setState({ screenLoading: false });
       Alert.alert(error.message);
@@ -182,7 +197,7 @@ class TaskDetailsScreen extends Component {
           isTask
           taskDetails
           onPressChat={() =>
-            navigation.navigate("Chat", { receiver_id: data.client.id , task_id: data.id})
+            navigation.navigate("Chat", { receiver_id: data.client.id , task_id: data.id, avatar: data.client.avatar ? data.client.avatar : null})
           }
           containerStyle={containerStyle}
         />

@@ -7,11 +7,13 @@ import {
   Alert,
   Platform,
   View,
-  Linking
+  Linking,
+  TouchableOpacity,
+  Text,
 } from "react-native";
 import { AudioRecorder, AudioUtils } from "react-native-audio";
 import Sound from "react-native-sound";
-import { hScale, vScale, sWidth } from "step-scale";
+import { hScale, vScale, sWidth, fScale } from "step-scale";
 import { icons } from "../assets";
 import {
   BackButton,
@@ -27,8 +29,43 @@ import { connect } from "step-react-redux";
 import { whiteHeaderOptions } from "../navigation/options";
 import { Step_API_Helpers, StepRequest } from "step-api-client";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import { EventRegister } from 'react-native-event-listeners';
+import global from '../global/global';
 
 class ChatScreen extends Component {
+
+  constructor(props) {
+    super(props);
+
+    
+    this.props.navigation.setOptions({
+      ...whiteHeaderOptions,
+      headerRight: () => 
+        <View style = {{flexDirection: 'row', justifyContent: 'center'}}>
+          <TouchableOpacity style = {{marginEnd: hScale(5), alignItems: 'flex-end'}} onPress = {() => {
+            if(this.props.route.params.second_phone != null && this.props.route.params.second_phone != "") {
+              Linking.openURL(`tel:${this.props.route.params.second_phone}`)
+            }
+          }}>
+            <Text style = {{fontSize: fScale(10),}}>{this.props.route.params.second_first_name + " " + this.props.route.params.second_last_name}</Text>
+            <Text style = {{fontSize: fScale(10),}}>{this.props.route.params.second_phone}</Text>
+          </TouchableOpacity>
+          <Image
+            source={this.props.route.params.second_avatar ? { uri: this.props.route.params.second_avatar } : icons.userPlaceholder}
+            resizeMode={"cover"}
+            style={styles.avatarStyle}
+          />
+        </View>,
+      headerLeft: () => 
+        <BackButton
+          backWithTitle
+          title={strings.chat}
+          onPress={() => this.props.navigation.goBack()}
+        />,
+        tabBarVisibile: false
+    })
+  }
+
   state = {
     second: null,
     text: "",
@@ -48,34 +85,21 @@ class ChatScreen extends Component {
     lastPage: null,
     my_latitude: 0,
     my_longitude: 0,
-    task_id: 0
-  };
-  static navigationOptions = ({ navigation }) => {
-    const avatar = navigation.getParam("avatar", null);
-    return {
-      ...whiteHeaderOptions,
-      headerRight: (
-        <Image
-          source={avatar ? { uri: avatar } : icons.userPlaceholder}
-          resizeMode={"cover"}
-          style={styles.avatarStyle}
-        />
-      ),
-      headerLeft: (
-        <BackButton
-          backWithTitle
-          title={strings.chat}
-          onPress={() => navigation.goBack()}
-        />
-      )
-    };
+    task_id: 0,
+    showImage: false,
+    showImageUrl: "",
+    first_fetch: true,
+    show_second_phone: false,
+    project_title: ""
   };
 
+
   UNSAFE_componentWillMount() {
-    const task_id = this.props.navigation.getParam("task_id", 0);
+    const task_id = this.props.route.params.task_id;
     this.setState({
       task_id: task_id
     })
+   
   }
 
   componentWillUnmount(){
@@ -90,17 +114,48 @@ class ChatScreen extends Component {
     } catch (error) {
 
     }
+    EventRegister.removeEventListener(this.notiChatListener);
   }
 
   componentDidMount() {
-    const { getParam, goBack } = this.props.navigation;
-    const receiver_id = getParam("receiver_id", null);
+    this.props.navigation.setParams({
+      second_first_name: '',
+      second_last_name: '',
+      second_phone: '',
+      second_avatar: null
+    })
+    const receiver_id = this.props.route.params.receiver_id;
     if (receiver_id) {
       this.initializeRecorder();
       this.setState({ receiver_id }, () => this.fetchData());
     } else {
-      goBack();
+      this.props.navigation.goBack();
     }
+
+    this.notiChatListener = EventRegister.addEventListener(global.NOTI_CHAT_OPEN, (data) => {
+      if(data.task_id != this.state.task_id) {
+        try {
+          voiceMessage.stop()
+        } catch (error) {
+    
+        }
+        try {
+          clearTimeout(refreshInterval)
+        } catch (error) {
+    
+        }
+        this.props.navigation.setParams({
+          second_first_name: '',
+          second_last_name: '',
+          second_phone: ''
+        })
+        this.setState({ 
+          task_id: data.task_id,
+          receiver_id: data.receiver_id,
+          pageNo: 1,
+        }, () => this.fetchData());
+      }
+    })
   }
   
   async initializeRecorder() {
@@ -230,6 +285,14 @@ class ChatScreen extends Component {
     });
   }
 
+  async showImage(item, index) {
+    console.log(item);
+    this.setState({
+      showImage: true,
+      showImageUrl: item.text
+    })
+  }
+
   refreshData () {
     // console.warn("Refreshing");
     this.setState({ pageNo: 1 }, () => this.fetchData())
@@ -247,7 +310,6 @@ class ChatScreen extends Component {
     // console.warn(pageNo);
     try {
       const data = await StepRequest(`conversation?${params}`);
-      console.log("conversation_data: " + JSON.stringify(data));
       const newChat = typeof data == "string";
       if (!newChat) {
         this.setState({
@@ -257,19 +319,50 @@ class ChatScreen extends Component {
           lastPage: data.conversation.last_page,
           second: data.second,
           screenLoading: false,
-          sendLoading: false
+          sendLoading: false,
+          project_title: data.request.requirements
         });
+        if(data.second.phone != null && data.second.phone != "") {
+          this.props.navigation.setParams({
+            second_first_name: data.second.first_name,
+            second_last_name: data.second.last_name,
+            second_phone: data.second.phone,
+          })
+        }
+        if(data.second.avatar) {
+          this.props.navigation.setParams({
+            second_avatar: data.second.avatar
+          })
+        }
+        if(data.alert != null && this.state.first_fetch) {
+          Alert.alert(strings.notice, data.alert);
+        }
+        refreshInterval = setTimeout(() => {
+          this.refreshData()
+        }, 5000);
       } else {
+        const data_split = data.split("||");
+        if((data_split[0] == "alert" || data_split[0] == "nofound") && this.state.first_fetch) {
+          Alert.alert(strings.notice, data_split[1]);
+        }
         this.setState({
           screenLoading: false
         });
+        // this.props.navigation.setParams({
+        //   second_first_name: '',
+        //   second_last_name: '',
+        //   second_phone: ''
+        // })
       }
-      refreshInterval = setTimeout(() => {
-        this.refreshData()
-      }, 5000);
+      
     } catch (error) {
       this.setState({ screenLoading: false, sendLoading: false });
       Alert.alert(error.message);
+    }
+    if(this.state.first_fetch) {
+      this.setState({
+        first_fetch: false
+      })
     }
   }
 
@@ -277,9 +370,10 @@ class ChatScreen extends Component {
     const { text } = this.state;
     text.length > 0 && this.onSend();
   }
+
   async onSend() {
     let { text, type, voiceMessage, uploadImage, receiver_id, task_id } = this.state;
-    console.warn(receiver_id);
+    
     this.setState({ sendLoading: true });
     const isPhotoMessage = type === 3;
     const isVoiceMessage = type === 2;
@@ -289,14 +383,23 @@ class ChatScreen extends Component {
     if (isVoiceMessage) {
       text = voiceMessage;
     }
+    // if(!isVoiceMessage && !isPhotoMessage) {
+    //   var phone_number_start_index = text.includes('05');
+    //   if(phone_number_start_index > 0) {
+    //     var first_str = text.substring(0, phone_number_start_index - 1);
+    //     var last_str = text.substr(phone_number_start_index - 1 + 10);
+    //     text = first_str + "05***" + last_str;
+    //   }
+    // }
     try {
       const messageBody = { receiver_id, type, text, request_id: task_id };
-      // console.warn("messageBody", messageBody);
+      console.log("messageBody", JSON.stringify(messageBody));
       const data = await StepRequest("messages", "POST", messageBody);
       this.setState({ text: "", voiceMessage: "", type: 1, pageNo: 1 }, () =>
         this.fetchData()
       );
-      // console.warn(data);
+      // console.log("//////////////////////////")
+      // console.log(JSON.stringify(data));
     } catch (error) {
       this.setState({ sendLoading: false });
       Alert.alert(error.message);
@@ -350,78 +453,91 @@ class ChatScreen extends Component {
     const endReached = pageNo == lastPage;
     return (
       <Container loading={screenLoading}>
+      {
+        this.state.showImage && 
+        <View style = {{flex: 1, width: '100%', height: '100%', position: 'absolute', top: 0, left: 0, zIndex: 10, justifyContent: 'center', alignItems: 'center', elevation: 20}}
+          onStartShouldSetResponder = {() => {this.setState({showImage: false, showImageUrl: ""})}}>
+          <View style = {{width: '100%', height: '100%', backgroundColor: '#000000', opacity: 0.8, position: 'absolute', top: 0, left: 0}}></View>
+          <TouchableOpacity style = {{position: 'absolute', right: 20, top: 20, width: hScale(18), height: hScale(18), padding: hScale(3), borderRadius: hScale(12), backgroundColor: '#ffffff', zIndex: 10}}
+            onPress = {() => {this.setState({showImage: false, showImageUrl: ""})}}>
+            <Image source={icons.xClose} style={[{width: '100%', height: '100%', tintColor: colors.black }]} resizeMode="contain" />
+          </TouchableOpacity>
+          <Image style = {{width: '90%', height: '90%', resizeMode: 'contain'}} source = {{uri: this.state.showImageUrl}}/>
+        </View>
+      }
         {
-          !noMessages && <MapView
-          provider = {PROVIDER_GOOGLE}
-          ref={ref => (this.myMapView = ref)}
-          showsUserLocation
-          showsMyLocationButton
-          style={{ width: hScale(354.4), height: vScale(150.3), }}
-          initialRegion={{
-            longitude: 45,
-            latitude: 25,
-            latitudeDelta: 20,
-            longitudeDelta: 20
-          }}
-          onMapReady={() => {
-            getUserLocation(
-              position => {
-                const { latitude, longitude } = position.coords;
-                console.log(latitude + "   " + longitude);
-                console.log(this.state.second.lat + "   " + this.state.second.lng);
-                var latDelta = 0.1;
-                var lngDelta = 0.1;
-                if(this.state.second != null) { 
-                  latDelta = Math.abs(latitude - this.state.second.lat);
-                  lngDelta = Math.abs(longitude - this.state.second.lng);
-                }
-                this.myMapView.animateToRegion({
-                  latitude: (latitude + this.state.second.lat) / 2,
-                  longitude: (longitude + this.state.second.lng) / 2,
-                  latitudeDelta: latDelta == 0 ? 0.1 : latDelta * 1.5,
-                  longitudeDelta: lngDelta == 0 ? 0.1 : lngDelta * 1.5
-                });
-                // todo: GeoCoding coords
-                this.setState({
-                  my_latitude: latitude,
-                  my_longitude: longitude
-                })
-              },
-              error => { }
-            );
-          }}
-          // onRegionChangeComplete={region => {
-          //   const { latitude, longitude } = region;
-          //   // this.setState({ location: { latitude, longitude } });
-          //   this.setState({
-          //     temp_latitude: latitude,
-          //     temp_longitude: longitude
-          //   })
-          // }}
-        >
-          <Marker
-            pinColor={colors.second}
-            coordinate={{latitude: this.state.my_latitude, longitude: this.state.my_longitude} || { longitude: 45, latitude: 25 }}
-            title = {"My Location"}
-            onPress = {() => {
-              const scheme = Platform.select({ ios: 'maps:0,0?q=', android: 'geo:0,0?q=' });
-              const latLng = `${this.state.my_latitude},${this.state.my_longitude}`;
-              const label = 'My Location';
-              var url = Platform.select({
-                ios: `${scheme}${label}@${latLng}`,
-                android: `${scheme}${latLng}(${label})`
-              });
-              Linking.openURL(url); 
-              if(Platform.OS == "android") {
-                Linking.openURL(url); 
-              } else {
-                url = 'http://maps.google.com/maps?daddr=' + this.state.my_latitude + ',' + this.state.my_longitude;
-                console.log("my location::" + url);
-                Linking.openURL(url).catch(err => console.error('An error occurred', err));
-              }
-              
+          !noMessages && 
+          <MapView
+            provider = {PROVIDER_GOOGLE}
+            ref={ref => (this.myMapView = ref)}
+            showsUserLocation
+            showsMyLocationButton
+            style={{ width: hScale(354.4), height: vScale(150.3), }}
+            initialRegion={{
+              longitude: 45,
+              latitude: 25,
+              latitudeDelta: 20,
+              longitudeDelta: 20
             }}
-          />
+            onMapReady={() => {
+              getUserLocation(
+                position => {
+                  const { latitude, longitude } = position.coords;
+                  console.log(latitude + "   " + longitude);
+                  console.log(this.state.second.lat + "   " + this.state.second.lng);
+                  var latDelta = 0.1;
+                  var lngDelta = 0.1;
+                  if(this.state.second != null) { 
+                    latDelta = Math.abs(latitude - this.state.second.lat);
+                    lngDelta = Math.abs(longitude - this.state.second.lng);
+                  }
+                  this.myMapView.animateToRegion({
+                    latitude: (latitude + this.state.second.lat) / 2,
+                    longitude: (longitude + this.state.second.lng) / 2,
+                    latitudeDelta: latDelta == 0 ? 0.1 : latDelta * 1.5,
+                    longitudeDelta: lngDelta == 0 ? 0.1 : lngDelta * 1.5
+                  });
+                  // todo: GeoCoding coords
+                  this.setState({
+                    my_latitude: latitude,
+                    my_longitude: longitude
+                  })
+                },
+                error => { }
+              );
+            }}
+            // onRegionChangeComplete={region => {
+            //   const { latitude, longitude } = region;
+            //   // this.setState({ location: { latitude, longitude } });
+            //   this.setState({
+            //     temp_latitude: latitude,
+            //     temp_longitude: longitude
+            //   })
+            // }}
+          >
+            <Marker
+              pinColor={colors.second}
+              coordinate={{latitude: this.state.my_latitude, longitude: this.state.my_longitude} || { longitude: 45, latitude: 25 }}
+              title = {"My Location"}
+              onPress = {() => {
+                const scheme = Platform.select({ ios: 'maps:0,0?q=', android: 'geo:0,0?q=' });
+                const latLng = `${this.state.my_latitude},${this.state.my_longitude}`;
+                const label = 'My Location';
+                var url = Platform.select({
+                  ios: `${scheme}${label}@${latLng}`,
+                  android: `${scheme}${latLng}(${label})`
+                });
+                Linking.openURL(url); 
+                if(Platform.OS == "android") {
+                  Linking.openURL(url); 
+                } else {
+                  url = 'http://maps.google.com/maps?daddr=' + this.state.my_latitude + ',' + this.state.my_longitude;
+                  console.log("my location::" + url);
+                  Linking.openURL(url).catch(err => console.error('An error occurred', err));
+                }
+                
+              }}
+            />
           {
             this.state.second != null &&
               <Marker
@@ -450,10 +566,13 @@ class ChatScreen extends Component {
           }
         </MapView>
         }
+        <View style = {{width: '100%', marginTop: vScale(10.4), marginStart: hScale(20), alignItems: 'flex-start'}}>
+          <Text style = {{fontSize: fScale(15),}}>{this.state.project_title}</Text>
+        </View>
         <KeyboardAvoidingView
           style={container}
           behavior={(Platform.OS === 'ios') ? "padding" : null}
-          keyboardVerticalOffset={100}
+          keyboardVerticalOffset={50}
           enabled
         >
           {noMessages ? (
@@ -481,7 +600,6 @@ class ChatScreen extends Component {
               renderItem={({ item, index }) => {
                 const isOtherUserMsg = item.user_id != user.data.id;
                 const isPlaying = playingIndex == index;
-
                 return (
                   <ConversationCard
                     second={second}
@@ -489,6 +607,7 @@ class ChatScreen extends Component {
                     isOtherUserMsg={isOtherUserMsg}
                     item={item}
                     onPressPlay={() => this.playVoiceMessage(item, index)}
+                    onPressImage = {() => this.showImage(item, index)}
                   />
                 );
               }}

@@ -44,6 +44,15 @@ export const MessageCard = (props) => {
         >
           {first_name + " " + last_name}
         </Text>
+      {
+        item.request != null &&
+        <Text
+          numberOfLines={1}
+          style={[discriptionStyle, {color: '#9b498b'}, isRTL && { textAlign: "left" }]}
+        >
+          {item.request.requirements}
+        </Text>
+      }
         <Text
           numberOfLines={2}
           style={[discriptionStyle, isRTL && { textAlign: "left" }]}

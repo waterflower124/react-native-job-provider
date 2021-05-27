@@ -1,98 +1,72 @@
-import { createBottomTabNavigator } from "react-navigation";
+import React, { Component } from "react";
 import { TabBar } from "../components";
 import ClientsTab from "./ClientsTab";
 import TasksTab from "./TasksTab";
 import ChatTab from "./ChatTab";
 import NotificationsTab from "./NotificationsTab";
-import ServicesTab from "./ServicesTab";
-import RequestTab from "./RequestTab";
-import MyProfileTab from "./MyProfileTab";
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-const tabNavigation = createBottomTabNavigator(
-  {
-    ServicesTab: {
-      screen: ServicesTab,
-      navigationOptions: ({ navigation }) => ({
-        tabBarVisible: isTabBarVisible(navigation)
-      })
-    },
-    ClientsTab: {
-      screen: ClientsTab,
-      navigationOptions: ({ navigation }) => ({
-        tabBarVisible: isTabBarVisible(navigation),
-        tabBarOnPress({ navigation, defaultHandler }) {
-          navigation.state.routes[0].params.refreshTasks();
-          defaultHandler();
+const Tab = createBottomTabNavigator();
+
+export default class tabNavigation extends Component {
+
+    constructor(props) {
+        super(props);
+        
+        this.state = {
+            
         }
-      })
-    },
-    TasksTab: {
-      screen: TasksTab,
-      navigationOptions: ({ navigation }) => ({
-        tabBarVisible: isTabBarVisible(navigation),
-        tabBarOnPress({ navigation, defaultHandler }) {
-          try {
-            navigation.state.routes[0].params.refreshTasks();
-          } catch (error) {}
-          defaultHandler();
-        }
-      })
-    },
-    ChatTab: {
-      screen: ChatTab,
-      navigationOptions: ({ navigation }) => ({
-        tabBarVisible: isTabBarVisible(navigation),
-        tabBarOnPress({ navigation, defaultHandler }) {
-          try {
-            navigation.state.routes[0].params.refreshChatList();
-          } catch (error) {}
-          defaultHandler();
-        }
-      })
-    },
-    RequestTab: {
-      screen: RequestTab,
-      navigationOptions: ({ navigation }) => ({
-        tabBarVisible: isTabBarVisible(navigation),
-        tabBarOnPress({ navigation, defaultHandler }) {
-          try {
-            navigation.state.routes[0].params.refreshRequests();
-          } catch (error) {}
-          defaultHandler();
-        }
-      })
-    },
-    MyProfileTab: {
-      screen: MyProfileTab,
-      navigationOptions: ({ navigation }) => ({
-        tabBarVisible: isTabBarVisible(navigation),
-        tabBarOnPress({ navigation, defaultHandler }) {
-          try {
-            navigation.state.routes[0].params.refreshOrders();
-          } catch (error) {}
-          defaultHandler();
-        }
-      })
-    },
-    NotificationsTab: {
-      screen: NotificationsTab,
-      navigationOptions: ({ navigation }) => ({
-        tabBarVisible: isTabBarVisible(navigation),
-        tabBarOnPress({ navigation, defaultHandler }) {
-          try {
-            navigation.state.routes[0].params.refreshNotifications();
-          } catch (error) {}
-          defaultHandler();
-        }
-      })
     }
-  },
-  {
-    tabBarComponent: TabBar
-  }
-);
 
-export default tabNavigation;
+    render() {
+        const user = this.props.route.params && this.props.route.params.user;
 
-const isTabBarVisible = (navigation, depth = 1) =>
-  navigation.state.routes.length <= depth;
+        return (
+            <Tab.Navigator tabBar = {(props) => <TabBar {...props}/>} initialRouteName = {"ClientsTab"}>
+                <Tab.Screen name = "ClientsTab" component = {ClientsTab} 
+                    options={({ route }) => ({
+                        tabBarVisible: route.state && route.state.index > 0 ? false : true
+                    })}
+                    listeners={({ navigation, route }) => ({
+                        tabPress: e => {
+                            routes[0].params.refreshTasks();
+                        },
+                    })}
+                />
+                <Tab.Screen name = "TasksTab" component = {TasksTab} 
+                    options={({ route }) => ({
+                        tabBarVisible: route.state && route.state.index > 0 ? false : true
+                    })}
+                    listeners={({ navigation, route }) => ({
+                        tabPress: e => {
+                            // routes[0].params.refreshTasks();
+                        },
+                    })}
+                />
+                <Tab.Screen name = "ChatTab" component = {ChatTab} 
+                    options={({ route }) => ({
+                        tabBarVisible: route.state && route.state.index > 0 ? false : true
+                    })}
+                    listeners={({ navigation, route }) => ({
+                        tabPress: e => {
+                            routes[0].params.refreshChatList();
+                        },
+                    })}
+                />
+                <Tab.Screen name = "NotificationsTab" component = {NotificationsTab} 
+                    options={({ route }) => ({
+                        tabBarVisible: route.state && route.state.index > 0 ? false : true
+                    })}
+                    listeners={({ navigation, route }) => ({
+                        tabPress: e => {
+                            routes[0].params.refreshNotifications();
+                        },
+                    })}
+                />
+            </Tab.Navigator>
+        );
+    }
+}
+
+// const isTabBarVisible = (route) =>
+//   route.state.index == 0;
