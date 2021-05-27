@@ -360,9 +360,9 @@ const data = [
 ];
 
 const socialURL = {
-  twitter: "https://twitter.com/HomeJobSA",
-  whatsapp: "https://wa.me/966501755873",
-  site_link: "https://maroof.sa/124623"
+  twitter: "",
+  whatsapp: "",
+  site_link: ""
 }
 
 export const SideMenu = connect(SideMenuDrawer);
