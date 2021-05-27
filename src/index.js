@@ -19,7 +19,6 @@ class App extends Component {
     };
     
     
-    // OneSignal.init("0f30ee31-f8d2-44fc-82d4-2bded8a42861", {kOSSettingsKeyAutoPrompt : false, kOSSettingsKeyInAppLaunchURL: false, kOSSettingsKeyInFocusDisplayOption:2});
     OneSignal.init("");
     
     OneSignal.addEventListener('received', this.onReceived);
